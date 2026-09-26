@@ -31,9 +31,14 @@ export interface AgentIntegration {
 
 export const MCP_SERVER_NAME = 'intentguard';
 
+/**
+ * Launch the local build directly with node. IntentGuard is local-only (never published),
+ * and agents on Windows spawn commands without a shell, where `npx` (an npx.cmd shim) fails
+ * with ENOENT. The path is relative to the repo root, which agents use as the working directory.
+ */
 export const MCP_SERVER = {
-  command: 'npx',
-  args: ['@intentguard/mcp-server'],
+  command: 'node',
+  args: ['mcp/dist/index.js'],
 };
 
 export const AGENT_INTEGRATIONS: AgentIntegration[] = [

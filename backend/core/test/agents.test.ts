@@ -28,7 +28,7 @@ describe('renderMcpConfig', () => {
     const existing = JSON.stringify({ mcpServers: { other: { command: 'foo' } } });
     const result = JSON.parse(renderMcpConfig('json', existing));
     expect(result.mcpServers.other).toEqual({ command: 'foo' });
-    expect(result.mcpServers.intentguard.args).toEqual(['@intentguard/mcp-server']);
+    expect(result.mcpServers.intentguard).toEqual({ command: 'node', args: ['mcp/dist/index.js'] });
   });
 
   it('replaces an existing intentguard TOML table and keeps the rest', () => {

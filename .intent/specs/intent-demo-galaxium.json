@@ -3,7 +3,7 @@
   "status": "approved",
   "version": 1,
   "createdAt": 1727325000,
-  "updatedAt": 1727325500,
+  "updatedAt": 1790437934,
   "rawRequest": "add seat selection to interstellar booking",
   "objective": "Travelers currently cannot select cabin seats during the interstellar booking flow, resulting in customer service overhead and a 24% drop-off at checkout.",
   "problemSeverity": "high",
@@ -20,7 +20,9 @@
       "source": "Support Ticket #1092",
       "excerpt": "I was assigned a windowless lower-deck bunk without being asked. I needed an observation deck seat.",
       "trust": "high",
-      "anchors": ["objective"]
+      "anchors": [
+        "objective"
+      ]
     },
     {
       "id": "ev-metric-checkout",
@@ -28,7 +30,10 @@
       "source": "Galaxium Analytics Dashboard",
       "excerpt": "24% checkout abandonment observed on step 2 when seat assignment is automated.",
       "trust": "high",
-      "anchors": ["objective", "outcome:0"]
+      "anchors": [
+        "objective",
+        "outcome:0"
+      ]
     }
   ],
   "constraints": [

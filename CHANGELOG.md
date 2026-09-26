@@ -28,9 +28,10 @@ All notable changes to IntentGuard are recorded here. The format follows
 - Repository layout now mirrors the three surfaces: `frontend/` (Next.js
   dashboard), `backend/` (`core`, `server`, `cli`), and `mcp/` (MCP stdio
   server). Package names are unchanged, so `pnpm --filter` commands still work.
-- The root workspace links `@intentguard/mcp-server`, so the generated
-  `npx @intentguard/mcp-server` config resolves to the local build instead of
-  the npm registry.
+- Generated agent configs launch the local build with `node mcp/dist/index.js`
+  instead of `npx @intentguard/mcp-server`. IntentGuard is local-only, and on
+  Windows agents spawn MCP servers without a shell, where `npx` fails with
+  `ENOENT`.
 - `SpecStore.save` and `SpecStore.saveReport` return what was written along
   with the list of redactions.
 

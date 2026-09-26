@@ -64,7 +64,7 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 |---|---|---|
 | M-1 | Stdio MCP server exposing `intent_create`, `intent_gather_evidence`, `intent_questions`, `intent_readiness`, `intent_get_spec`, `intent_check_scope`, `intent_verify`, `intent_report` | Done |
 | M-2 | Resolve the project root from `INTENT_ROOT` or the git top level | Done |
-| M-3 | Agents launch the local workspace build: `npx @intentguard/mcp-server` resolves to `mcp/dist` through the root workspace link | Done |
+| M-3 | Agents launch the local build with `node mcp/dist/index.js`, which also works on Windows where agents spawn without a shell | Done |
 
 ### 5.3 Agent integrations (`backend/core/src/agents`, CLI)
 
