@@ -45,7 +45,10 @@ jobs:
       - run: pnpm test
       - name: Readiness gate passes on the demo spec
         run: pnpm run cli -- check intent-demo-galaxium
-      - name: Generated agent configs carry no absolute paths or personal data
+      - name: Generated agent files carry no personal data, and machine-specific configs stay out of git
         run: |
           pnpm run agents:setup
-          node scripts/check-pii.mjs .mcp.json .cursor/mcp.json .codex/config.toml .bob/mcp.json .bob/rules.md AGENTS.md CLAUDE.md
+          node scripts/check-pii.mjs .mcp.json .cursor/mcp.json .codex/config.toml .bob/mcp.json .gemini/settings.json .agents/mcp_config.json .bob/rules/intentguard.md AGENTS.md CLAUDE.md GEMINI.md
+          for f in .mcp.json .cursor/mcp.json .codex/config.toml .bob/mcp.json .gemini/settings.json .agents/mcp_config.json; do
+            git check-ignore -q "$f" || { echo "$f is not git-ignored"; exit 1; }
+          done

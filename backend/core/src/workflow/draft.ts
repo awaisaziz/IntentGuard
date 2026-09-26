@@ -24,7 +24,8 @@ export async function draftSpec(rootDir: string, request: string): Promise<Inten
   try {
     draft = await resolveProvider(config).draft(request, evidence);
   } catch (err) {
-    console.error('[intentguard] provider.draft error:', err);
+    // The rule-based draft below still works; one line is enough to explain why it was used
+    console.error(`[intentguard] LLM draft unavailable, using the rule-based draft: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   const now = generateTimestamp();

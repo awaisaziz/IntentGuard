@@ -2,21 +2,32 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import type { OutcomeCheck } from '../schema/intentspec.js';
 
+const TEST_FILE = /(\.(test|spec)\.[^/]+|_test\.go|(^|\/)test_[^/]+\.py)$/;
+const TEST_DIRS = ['test', 'tests', '__tests__', 'spec'];
+
 export async function findRelatedTests(repoRoot: string, changedFiles: string[]): Promise<string[]> {
   const relatedTests: Set<string> = new Set();
-  
+  const p = path.posix;
+
   for (const file of changedFiles) {
-    const ext = path.extname(file);
-    const base = path.basename(file, ext);
-    const dir = path.dirname(file);
-    
-    // Naive heuristic: look for file.test.ts or file.spec.ts in same dir
+    // A changed test file is its own evidence
+    if (TEST_FILE.test(file)) {
+      relatedTests.add(file);
+      continue;
+    }
+    const ext = p.extname(file);
+    const base = p.basename(file, ext);
+    const dir = p.dirname(file);
+
+    // Name-based heuristic: tests next to the file, in a sibling __tests__, or in a top-level test folder
+    const names = [`${base}.test${ext}`, `${base}.spec${ext}`, ...(ext === '.py' ? [`test_${base}.py`] : [])];
     const testCandidates = [
-      path.join(dir, `${base}.test${ext}`),
-      path.join(dir, `${base}.spec${ext}`),
-      path.join(dir, '__tests__', `${base}.test${ext}`),
+      ...names.map(n => p.join(dir, n)),
+      p.join(dir, '__tests__', `${base}.test${ext}`),
+      ...(ext === '.go' ? [p.join(dir, `${base}_test.go`)] : []),
+      ...TEST_DIRS.flatMap(d => names.map(n => p.join(d, n))),
     ];
-    
+
     for (const candidate of testCandidates) {
       try {
         await fs.access(path.join(repoRoot, candidate));

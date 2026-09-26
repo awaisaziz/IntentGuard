@@ -1,9 +1,22 @@
 import { simpleGit } from 'simple-git';
 
+/** Working-tree status, or null when the folder is not a git repository (then there is no diff). */
+async function statusOrNull(repoRoot: string) {
+  try {
+    return await simpleGit(repoRoot).status(['--untracked-files=all']);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Every path with working-tree changes: modified, new (including untracked), deleted,
+ * and renamed files. New files matter most for scope checks, since a change that adds
+ * a file outside scope must still be caught.
+ */
 export async function getChangedFiles(repoRoot: string): Promise<string[]> {
-  const git = simpleGit(repoRoot);
-  const status = await git.status();
-  return status.modified;
+  const status = await statusOrNull(repoRoot);
+  return status ? Array.from(new Set(status.files.map(f => f.path))) : [];
 }
 
 export async function getDiffStat(repoRoot: string): Promise<string> {
@@ -13,9 +26,7 @@ export async function getDiffStat(repoRoot: string): Promise<string> {
 }
 
 export async function getStagedFiles(repoRoot: string): Promise<string[]> {
-  const git = simpleGit(repoRoot);
-  const status = await git.status();
-  return status.staged;
+  return (await statusOrNull(repoRoot))?.staged ?? [];
 }
 
 export async function getRepoRoot(cwd: string = process.cwd()): Promise<string> {

@@ -3,13 +3,15 @@ import { getChangedFiles, getStagedFiles } from '../utils/git.js';
 import { checkScopeMultiple } from '../scope/checker.js';
 import { findRelatedTests, mapOutcomesToTests } from './test-mapper.js';
 import { generateTimestamp } from '../utils/id.js';
+import { isIntentGuardManaged } from '../agents/registry.js';
 
 export async function verify(repoRoot: string, spec: IntentSpec): Promise<VerificationResult> {
   const staged = await getStagedFiles(repoRoot);
   const changed = await getChangedFiles(repoRoot);
-  
-  // Combine unique changed files
-  const allChanged = Array.from(new Set([...staged, ...changed]));
+
+  // Combine unique changed files. IntentGuard's own state and generated agent files are not
+  // part of the change under review, so they never count as scope violations.
+  const allChanged = Array.from(new Set([...staged, ...changed])).filter(f => !isIntentGuardManaged(f));
   
   // Scope check
   let scopeViolations: string[] = [];

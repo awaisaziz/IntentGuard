@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { HTTPException } from 'hono/http-exception';
+import { streamSSE } from 'hono/streaming';
 import {
   SpecStore,
   loadConfig,
@@ -10,19 +12,53 @@ import {
   generateProofReport,
   draftSpec,
   getAgentStatuses,
+  IntentAgent,
+  WatsonxChatModel,
+  type ChatModel,
   type IntentSpec,
 } from '@intentguard/core';
 
 // Spec IDs become file names under .intent/specs, so reject anything path-like
 const SPEC_ID = /^[A-Za-z0-9_-]+$/;
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+const MAX_CHAT_SESSIONS = 20;
+
+export const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:3847', 'http://127.0.0.1:3847'];
+
+export interface AppOptions {
+  /** Creates the model for a new chat session (default: IBM watsonx from the environment). */
+  createChatModel?: () => ChatModel;
+  /** Browser origins allowed to call the API (default: the local web dashboard). */
+  allowedOrigins?: string[];
+}
 
 /**
  * Builds the IntentGuard HTTP API over a project root.
  * @param rootDir Project root containing the .intent directory
  */
-export function createApp(rootDir: string): Hono {
+export function createApp(rootDir: string, options: AppOptions = {}): Hono {
   const store = new SpecStore(rootDir);
+  const createChatModel = options.createChatModel ?? (() => WatsonxChatModel.fromEnv());
+  const allowedOrigins = options.allowedOrigins ?? DEFAULT_ALLOWED_ORIGINS;
+  const sessions = new Map<string, IntentAgent>();
   const app = new Hono().basePath('/api');
+
+  // The chat agent can edit files, so only local callers get in: requests must be addressed to
+  // localhost (blocks DNS rebinding), come from an allowed origin, and send JSON (which forces
+  // a CORS preflight, so other websites cannot fire simple cross-site POSTs at the API).
+  app.use('*', async (c, next) => {
+    if (!LOCAL_HOSTS.has(new URL(c.req.url).hostname)) return c.json({ error: 'Forbidden host' }, 403);
+    await next();
+  });
+  app.use('*', cors({ origin: allowedOrigins, allowMethods: ['GET', 'POST', 'OPTIONS'], allowHeaders: ['Content-Type'] }));
+  app.use('*', async (c, next) => {
+    const origin = c.req.header('origin');
+    if (origin && !allowedOrigins.includes(origin)) return c.json({ error: 'Forbidden origin' }, 403);
+    if (c.req.method === 'POST' && !(c.req.header('content-type') ?? '').includes('application/json')) {
+      return c.json({ error: 'Content-Type must be application/json' }, 415);
+    }
+    await next();
+  });
 
   async function loadSpec(id: string): Promise<IntentSpec> {
     if (!SPEC_ID.test(id)) throw new HTTPException(400, { message: `Invalid spec id: ${id}` });
@@ -116,6 +152,69 @@ export function createApp(rootDir: string): Hono {
     const spec = await loadSpec(c.req.param('id'));
     const { report } = await store.saveReport(generateProofReport(spec.id, await verify(rootDir, spec)));
     return c.json(report);
+  });
+
+  // ---------- Chat: a watsonx coding agent that works through the intent layer ----------
+
+  function chatSession(id: string): IntentAgent {
+    const agent = sessions.get(id);
+    if (!agent) throw new HTTPException(404, { message: `Chat session ${id} not found (the server may have restarted)` });
+    return agent;
+  }
+
+  app.post('/chat', async c => {
+    const { harness } = await readJson<{ harness: boolean }>(c.req);
+    let model: ChatModel;
+    try {
+      model = createChatModel();
+    } catch (err) {
+      throw new HTTPException(503, { message: err instanceof Error ? err.message : String(err) });
+    }
+    const agent = await IntentAgent.create({ rootDir, model, harness: harness !== false });
+    sessions.set(agent.id, agent);
+    for (const [id, old] of sessions) {
+      if (sessions.size <= MAX_CHAT_SESSIONS) break;
+      if (!old.isBusy) sessions.delete(id);
+    }
+    return c.json({ id: agent.id, harness: agent.harness, model: agent.modelId, spec: await agent.snapshot() }, 201);
+  });
+
+  app.get('/chat/:id', async c => {
+    const agent = chatSession(c.req.param('id'));
+    return c.json({
+      id: agent.id,
+      harness: agent.harness,
+      model: agent.modelId,
+      busy: agent.isBusy,
+      metrics: agent.getMetrics(),
+      spec: await agent.snapshot(),
+    });
+  });
+
+  app.post('/chat/:id/messages', async c => {
+    const agent = chatSession(c.req.param('id'));
+    const { message } = await readJson<{ message: string }>(c.req);
+    if (typeof message !== 'string' || !message.trim()) throw new HTTPException(400, { message: '"message" is required' });
+    if (agent.isBusy) throw new HTTPException(409, { message: 'The agent is still working on the previous message' });
+
+    c.header('X-Accel-Buffering', 'no');
+    return streamSSE(c, async stream => {
+      const controller = new AbortController();
+      stream.onAbort(() => controller.abort());
+      for await (const event of agent.send(message.trim(), { signal: controller.signal })) {
+        await stream.writeSSE({ event: event.type, data: JSON.stringify(event) });
+      }
+    });
+  });
+
+  app.post('/chat/:id/approve', async c => {
+    const agent = chatSession(c.req.param('id'));
+    if (!agent.harness) throw new HTTPException(409, { message: 'The baseline agent has no approval step (harness is off)' });
+    try {
+      return c.json({ spec: await agent.approve() });
+    } catch (err) {
+      throw new HTTPException(409, { message: err instanceof Error ? err.message : String(err) });
+    }
   });
 
   app.onError((err, c) => {

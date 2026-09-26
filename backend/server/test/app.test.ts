@@ -73,7 +73,7 @@ describe('IntentGuard API', () => {
 
   it('reports agent integration status', async () => {
     const agents = await (await app.request('/api/agents')).json();
-    expect(agents.map((a: { id: string }) => a.id)).toEqual(['claude', 'cursor', 'codex', 'bob']);
+    expect(agents.map((a: { id: string }) => a.id)).toEqual(['claude', 'bob', 'codex', 'gemini', 'antigravity', 'cursor']);
     expect(agents.every((a: { mcpConfigured: boolean }) => !a.mcpConfigured)).toBe(true);
   });
 });

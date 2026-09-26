@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { draftSpec } from '@intentguard/core';
+import { computeReadiness, draftSpec, loadConfig } from '@intentguard/core';
 
 /**
  * Registers the intent_create tool on the MCP server.
@@ -19,8 +19,17 @@ export function registerCreateTool(server: McpServer, defaultRootDir: string): v
       try {
         const spec = await draftSpec(projectPath || defaultRootDir, request);
 
+        const { readinessThreshold } = await loadConfig(projectPath || defaultRootDir);
+        const readiness = computeReadiness(spec, readinessThreshold);
         return {
-          content: [{ type: 'text', text: JSON.stringify(spec, null, 2) }]
+          content: [
+            { type: 'text', text: JSON.stringify(spec, null, 2) },
+            {
+              type: 'text',
+              text: `Draft ${spec.id} created (readiness ${readiness.score}/100, threshold ${readinessThreshold}). ` +
+                'Next: call intent_gather_evidence and read the relevant code, then intent_questions, ask the developer, and record the answers with intent_update_spec. Do not write code yet.'
+            }
+          ]
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

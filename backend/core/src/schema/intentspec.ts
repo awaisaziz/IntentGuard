@@ -132,4 +132,9 @@ export interface IntentConfig {
   specDir: string;
   reportDir: string;
   privacy?: PrivacyConfig;
+  /**
+   * Named project checks, e.g. `{ "test": "pnpm test" }`. The chat agent can only run
+   * commands listed here, by name, so the developer decides what may execute.
+   */
+  commands?: Record<string, string>;
 }

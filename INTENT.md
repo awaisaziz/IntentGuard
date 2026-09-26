@@ -21,6 +21,7 @@ Request → Evidence → Clarify → IntentSpec → Readiness Gate → Code → 
 | Draft a spec from the raw request | `intent_create` | `POST /api/specs` | `intent new "<request>"` |
 | Gather repo evidence | `intent_gather_evidence` | (included in draft) | (included in `new`) |
 | Surface open questions | `intent_questions` | `GET /api/specs/:id/questions` | |
+| Record the developer's answers | `intent_update_spec` | | |
 | Score readiness | `intent_readiness` | `GET /api/specs/:id/readiness` | `intent check [id]` |
 | Read the working brief | `intent_get_spec` | `GET /api/specs/:id` | |
 | Check a file before editing | `intent_check_scope` | `POST /api/specs/:id/scope-check` | |
@@ -29,6 +30,8 @@ Request → Evidence → Clarify → IntentSpec → Readiness Gate → Code → 
 | Commit with a spec reference | | | `intent commit [id]` |
 
 When no spec ID is given, the **active spec** (`.intent/active.json`) is used. Drafting a spec makes it active.
+
+External agents (Claude Code, IBM Bob, Codex, Gemini CLI, Cursor) reach these steps through the MCP tools after `intent connect`. The built-in chat agent follows the same lifecycle with the fence enforced in code; see [The Chat Agent Harness](#the-chat-agent-harness).
 
 ## The Eight-Part IntentSpec
 
@@ -66,7 +69,7 @@ Six weighted gates produce a score from 0 to 100. A gate that passes adds its fu
 
 ## Scope Fence
 
-Before editing any file, the agent calls `intent_check_scope` with the path:
+Before editing any file, the agent calls `intent_check_scope` with the path (absolute or repo-relative). It answers **BLOCKED** when the file is outside the repository, is IntentGuard state (`.intent/`), there is no active spec, or the spec has not passed the readiness gate. Otherwise the scope rules decide:
 
 1. A match against any `outOfScope` glob → **BLOCKED**, whatever `inScope` says.
 2. No `inScope` patterns defined → allowed.
@@ -75,15 +78,36 @@ Before editing any file, the agent calls `intent_check_scope` with the path:
 
 The agent must not edit a blocked file. If a blocked file genuinely needs to change, the spec's scope is updated first, with the developer's agreement.
 
+## Clarifying Questions
+
+`intent_questions` turns whatever the spec is missing into questions for the developer, most critical first, and quotes the spec's own weak spots. Examples: an objective that only restates the request, outcomes with nothing observable to test, a scope that allows files but protects nothing, or files the evidence points at. The agent asks them (making them more specific from what it read in the code), waits for the answers, and records them with `intent_update_spec`. Readiness is re-scored after every update, and changing an approved spec sends it back to draft.
+
+Over MCP this is cooperative: the tools answer BLOCKED and the rules tell the agent to stop, but the agent's own edit tool is not intercepted. The chat agent enforces the same gate in code (see below), adding a required developer approval.
+
 ## Verification and Proof
 
-`intent_verify` compares staged and modified files against the scope fence, finds related tests, maps outcomes to them, and lists health metrics. It writes a **Proof Report** to `.intent/reports/<id>-report.json`. The report is `commitReady` only when there are no scope violations and every outcome maps to a passing check.
+`intent_verify` compares every changed file (staged, modified, and new untracked files) against the scope fence, finds related tests, maps outcomes to them, and lists health metrics. IntentGuard's own files (`.intent/`, generated agent configs and rules) never count as changes. It writes a **Proof Report** to `.intent/reports/<id>-report.json`. The report is `commitReady` only when there are no scope violations and every outcome maps to a passing check.
+
+In the chat agent, verification also runs the repository's configured `test` check (`commands.test` in `.intent/config.json`). A failing run makes the report not commit-ready and marks mapped outcomes as failed.
 
 Current limitations, which the proof report should not hide:
 
-- Related tests are found by file name only (`name.test.ts`, `name.spec.ts`, `__tests__/`), and are not executed yet.
+- Related tests are found by file name (`name.test.ts`, `name.spec.ts`, `test_name.py`, next to the file, in `__tests__/`, or in a top-level `test/`, `tests/`, `spec/` folder). Only the chat agent executes tests.
 - Outcomes are mapped to tests heuristically.
 - Health metrics are reported as `unknown` and need manual review.
+
+## The Chat Agent Harness
+
+`intent chat` and the dashboard's `/chat` page run a watsonx coding agent whose only access to the repository is through IntentGuard's tools. The lifecycle above is enforced in code, not left to the prompt. Every `edit_file` / `write_file` passes this fence, in order:
+
+1. **An active spec exists**, otherwise `BLOCKED (no-spec)`.
+2. **Readiness ≥ threshold**, otherwise `BLOCKED (not-ready)` with the failing gates.
+3. **The developer approved the spec** with `/approve` or the Approve button, otherwise `BLOCKED (not-approved)`. The model has no tool that approves, and any `intent_update_spec` after approval resets the spec to `draft`, so widening its own scope sends the agent back to the developer.
+4. **The file is inside the approved scope**, otherwise `BLOCKED (out-of-scope)`.
+
+In both modes, the agent cannot read `.env` files or keys, leave the repository, or edit `.git/`, `node_modules/`, or `.intent/` directly. It can only run checks listed by name under `commands` in `.intent/config.json`.
+
+**Baseline mode** (`--no-harness`, or Baseline in the web UI) keeps the same model and file tools but removes the fence and the intent tools. It still measures every write against the active spec, so its *out-of-scope writes* metric shows the drift the harness would have blocked. Each session writes metrics to `.intent/runs/<run>.json` (local, never committed) for A/B comparison.
 
 ## Privacy
 

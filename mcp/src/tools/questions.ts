@@ -10,7 +10,7 @@ import { SpecStore, generateQuestions } from '@intentguard/core';
 export function registerQuestionsTool(server: McpServer, rootDir: string): void {
   server.tool(
     'intent_questions',
-    "Analyze the spec and return only the questions the codebase can't answer. These are gaps that need human input before implementation can begin.",
+    "Find what the spec is still missing and return it as questions for the developer, most critical first. Ask the developer (you may make each question more specific using what you found in the code), wait for the answers, then record them with intent_update_spec. Never answer them with your own assumptions.",
     {
       specId: z.string().optional().describe('Spec ID (uses active spec if omitted)')
     },
@@ -25,9 +25,15 @@ export function registerQuestionsTool(server: McpServer, rootDir: string): void 
         }
 
         const questions = generateQuestions(spec);
+        const text = questions.length
+          ? [
+              `Open questions for ${spec.id}. Ask the developer these before writing any code, then record the answers with intent_update_spec:`,
+              ...questions.map((q, i) => `${i + 1}. [${q.severity}] (${q.section}) ${q.question}${q.context ? `\n   Context: ${q.context}` : ''}`),
+            ].join('\n')
+          : `No open questions for ${spec.id}. Call intent_readiness.`;
 
         return {
-          content: [{ type: 'text', text: JSON.stringify(questions, null, 2) }]
+          content: [{ type: 'text', text }]
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

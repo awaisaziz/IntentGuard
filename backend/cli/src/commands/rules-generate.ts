@@ -1,6 +1,6 @@
-import { AGENT_INTEGRATIONS, getRepoRoot, writeAgentRules } from '@intentguard/core';
-import { success, error, warning } from '../ui/formatters.js';
-import { selectAgents } from './mcp-setup.js';
+import { connectRepo, getRepoRoot } from '@intentguard/core';
+import { success, error } from '../ui/formatters.js';
+import { selectAgentsOrExit } from './mcp-setup.js';
 
 interface RulesGenerateOptions {
   agent?: string;
@@ -12,19 +12,9 @@ interface RulesGenerateOptions {
  */
 export async function rulesGenerateCommand(options: RulesGenerateOptions): Promise<void> {
   try {
-    const agents = selectAgents(options);
-    if (!agents) {
-      const known = AGENT_INTEGRATIONS.map(a => a.id).join(', ');
-      console.log(warning(`Unknown agent "${options.agent}". Known agents: ${known}`));
-      process.exit(1);
-    }
-
-    const repoRoot = await getRepoRoot();
-    const written = new Set<string>();
-    for (const agent of agents) {
-      for (const file of await writeAgentRules(repoRoot, agent)) written.add(file);
-    }
-    for (const file of written) {
+    const agents = selectAgentsOrExit(options);
+    const result = await connectRepo(await getRepoRoot(), { agents, mcp: false });
+    for (const file of result.rules) {
       console.log(success(`Generated rule file: ${file}`));
     }
   } catch (err: any) {

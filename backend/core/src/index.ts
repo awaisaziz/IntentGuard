@@ -9,6 +9,7 @@ export * from './store/spec-store.js';
 export * from './store/config.js';
 
 export * from './scope/checker.js';
+export * from './scope/gate.js';
 
 export * from './verify/verifier.js';
 export * from './verify/diff-parser.js';
@@ -22,10 +23,23 @@ export * from './llm/provider.js';
 // Avoid exposing templates directly if not needed, but prompt asks to export them if possible
 export * from './llm/templates.js';
 
+export * from './llm/chat.js';
+export * from './llm/watsonx-client.js';
+
 export * from './workflow/draft.js';
+export * from './workflow/checks.js';
+export * from './workflow/connect.js';
+export * from './workflow/update.js';
 
 export * from './agents/registry.js';
 export * from './agents/rules.js';
+
+export * from './agent/types.js';
+export * from './agent/workspace.js';
+export { IntentAgent, type IntentAgentOptions } from './agent/agent.js';
+export { specSnapshot, toolDefinitions } from './agent/tools.js';
+
+export * from './utils/home.js';
 
 export * from './utils/git.js';
 export * from './utils/id.js';

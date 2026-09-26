@@ -10,6 +10,6 @@ Claude Code instructions for this repository. The shared agent guide and IntentG
 - The `intent_*` MCP tools come from the project `.mcp.json`. If they are missing, run `pnpm build && pnpm agents:setup`, then restart the session.
 - On Windows, prefer forward slashes in paths passed to `intent_check_scope`. The scope checker normalizes them, but specs are written with POSIX globs.
 
-<!-- intentguard:start (managed by `intent agents setup`, edits inside are overwritten) -->
+<!-- intentguard:start (managed by `intent connect`, edits inside are overwritten) -->
 @AGENTS.md
 <!-- intentguard:end -->

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ShieldCheck, Github, Settings, LayoutDashboard, Layers, FileCode } from 'lucide-react';
+import { ShieldCheck, Github, Settings, LayoutDashboard, Layers, MessageSquare } from 'lucide-react';
 
 export default function Navbar() {
   return (
@@ -21,6 +21,10 @@ export default function Navbar() {
           <Link href="/specs" className="flex items-center gap-2 text-slate-600 hover:text-brand-teal transition-colors">
             <Layers className="w-4 h-4" />
             <span>Specs</span>
+          </Link>
+          <Link href="/chat" className="flex items-center gap-2 text-slate-600 hover:text-brand-teal transition-colors">
+            <MessageSquare className="w-4 h-4" />
+            <span>Chat</span>
           </Link>
           <Link href="/settings" className="flex items-center gap-2 text-slate-600 hover:text-brand-teal transition-colors">
             <Settings className="w-4 h-4" />

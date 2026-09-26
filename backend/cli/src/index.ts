@@ -9,6 +9,8 @@ import { reportCommand } from './commands/report.js';
 import { commitCommand } from './commands/commit.js';
 import { mcpSetupCommand } from './commands/mcp-setup.js';
 import { rulesGenerateCommand } from './commands/rules-generate.js';
+import { connectCommand } from './commands/connect.js';
+import { chatCommand } from './commands/chat.js';
 
 const program = new Command();
 
@@ -47,12 +49,29 @@ program
   .description('Commit changes with spec reference')
   .action(commitCommand);
 
+const AGENT_IDS = 'claude, bob, codex, gemini, antigravity, cursor';
+
+program
+  .command('connect [repo]')
+  .description('Connect IntentGuard to a repository: MCP config and rules for every agent, plus .intent/ setup')
+  .option('--agent <name>', `Connect a single agent (${AGENT_IDS})`)
+  .action(connectCommand);
+
+program
+  .command('chat')
+  .description('Chat with an IBM watsonx coding agent that works through the intent layer')
+  .option('--repo <path>', 'Repository to work in (default: current)')
+  .option('--no-harness', 'Run the baseline agent without the intent layer, for A/B comparisons')
+  .option('--model <id>', 'watsonx model id (default: WATSONX_MODEL_ID or ibm/granite-4-h-small)')
+  .option('--list-models', 'List watsonx models in your region that support tool calling')
+  .action(chatCommand);
+
 const mcp = program.command('mcp').description('Manage MCP settings');
 mcp
   .command('setup')
-  .description('Configure MCP for detected agents')
+  .description('Configure MCP for agents in this repository')
   .option('--all', 'Configure for all known agents')
-  .option('--agent <name>', 'Configure for specific agent (claude, cursor, codex, bob)')
+  .option('--agent <name>', `Configure for specific agent (${AGENT_IDS})`)
   .action(mcpSetupCommand);
 
 const rules = program.command('rules').description('Manage agent rules');
@@ -65,11 +84,8 @@ rules
 const agents = program.command('agents').description('Manage AI coding agent integrations');
 agents
   .command('setup')
-  .description('Write MCP config and rule files for every supported agent (or one with --agent)')
-  .option('--agent <name>', 'Set up a single agent (claude, cursor, codex, bob)')
-  .action(async (options: { agent?: string }) => {
-    await mcpSetupCommand(options);
-    await rulesGenerateCommand(options);
-  });
+  .description('Connect this repository (same as `intent connect` with no path)')
+  .option('--agent <name>', `Set up a single agent (${AGENT_IDS})`)
+  .action((options: { agent?: string }) => connectCommand(undefined, options));
 
 program.parse(process.argv);

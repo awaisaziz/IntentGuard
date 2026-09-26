@@ -7,5 +7,10 @@
   "privacy": {
     "redactSpecs": true,
     "redactReports": true
+  },
+  "commands": {
+    "test": "pnpm test",
+    "lint": "pnpm run lint",
+    "build": "pnpm run build"
   }
 }

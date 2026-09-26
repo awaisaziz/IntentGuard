@@ -44,15 +44,20 @@ coverage/
 # Temp
 tmp/
 
-# IntentGuard local state. Specs, proof reports, and config.json are committed; the active pointer is not.
+# IntentGuard local state. Specs, proof reports, and config.json are committed; the active
+# pointer and chat run logs are not.
 .intent/active.json
+.intent/runs/
 
 # AI agent integrations: generated from backend/core/src/agents by `pnpm agents:setup`.
-# Each agent only reads its own fixed path, so these cannot share a folder.
+# Each agent only reads its own fixed path, so these cannot share a folder. The MCP configs
+# hold absolute paths to this checkout, so they are machine-specific.
 .mcp.json
 .cursor/
 .codex/
 .bob/
+.gemini/
+.agents/mcp_config.json
 
 # Personal Claude Code settings (permissions, local paths)
 .claude/settings.local.json

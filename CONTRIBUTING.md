@@ -60,8 +60,10 @@ Commit the spec and its report together with the code.
 - Add or update Vitest tests next to the package you change
   (`backend/<pkg>/test`).
 - Agent integrations are defined once in `backend/core/src/agents/`. Never
-  hand-edit `.mcp.json`, `.cursor/`, `.codex/`, or `.bob/`; they are generated.
-- Do not change `frontend/` unless the task is explicitly about the dashboard.
+  hand-edit `.mcp.json`, `.cursor/`, `.codex/`, `.bob/`, `.gemini/`, or `.agents/mcp_config.json`; they
+  are generated per machine by `pnpm agents:setup` / `pnpm connect`.
+- Do not change `frontend/` unless the task is explicitly about the dashboard
+  (the chat page is the only live part).
 - Configuration comes from environment variables (`WATSONX_API_KEY`,
   `WATSONX_PROJECT_ID`, `INTENT_ROOT`, `INTENTGUARD_API_PORT`), never from
   committed files.
@@ -72,7 +74,7 @@ Specs, reports, and rule files are committed and end up in pull requests, so
 the repository must never carry personal data or credentials.
 
 - **Never commit** `.env` files, private keys, tokens, `.intent/active.json`,
-  or generated agent configs. `.gitignore` excludes them and
+  `.intent/runs/`, or generated agent configs. `.gitignore` excludes them and
   `scripts/check-pii.mjs` refuses them even if force-added.
 - **The pre-commit hook** runs `node scripts/check-pii.mjs --staged` on the
   lines you are adding. CI runs `--all` on every tracked file. Fix the finding
@@ -82,8 +84,10 @@ the repository must never carry personal data or credentials.
   a file path rather than quoting someone's email, phone, or name. The spec
   store redacts what it can (see `backend/core/src/privacy/`), but it cannot
   recognise every name.
-- **No absolute local paths** in code, docs, specs, or generated configs.
-  Use paths relative to the repo root.
+- **No absolute local paths** in anything committed: code, docs, specs, or
+  rule files. Use paths relative to the repo root. (Generated MCP configs hold
+  absolute paths to your checkout by design; that is why they are never
+  committed.)
 - Test fixtures that need a realistic secret or address should assemble it at
   runtime (for example `['sk', 'live', 'x'.repeat(20)].join('-')`) so the
   scanner does not trip on the test file.
