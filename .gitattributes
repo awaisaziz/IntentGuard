@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Shell hooks must stay LF even on Windows checkouts, or sh cannot run them
+.githooks/* text eol=lf
+*.sh text eol=lf

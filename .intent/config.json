@@ -3,5 +3,9 @@
   "llmProvider": "auto",
   "readinessThreshold": 70,
   "specDir": ".intent/specs",
-  "reportDir": ".intent/reports"
+  "reportDir": ".intent/reports",
+  "privacy": {
+    "redactSpecs": true,
+    "redactReports": true
+  }
 }

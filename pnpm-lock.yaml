@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@intentguard/mcp-server':
+        specifier: workspace:*
+        version: link:mcp
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.4
@@ -24,7 +27,7 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.4)(jiti@1.21.7)(tsx@4.23.15)
 
-  packages/cli:
+  backend/cli:
     dependencies:
       '@intentguard/core':
         specifier: workspace:*
@@ -52,7 +55,7 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.4)(jiti@1.21.7)(tsx@4.23.15)
 
-  packages/core:
+  backend/core:
     dependencies:
       minimatch:
         specifier: ^10.0.0
@@ -77,29 +80,7 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.4)(jiti@1.21.7)(tsx@4.23.15)
 
-  packages/mcp-server:
-    dependencies:
-      '@intentguard/core':
-        specifier: workspace:*
-        version: link:../core
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.30.0
-        version: 1.30.1(zod@3.25.76)
-      zod:
-        specifier: ^3.24.0
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.20.4
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.0
-        version: 3.2.7(@types/node@22.20.4)(jiti@1.21.7)(tsx@4.23.15)
-
-  packages/server:
+  backend/server:
     dependencies:
       '@hono/node-server':
         specifier: ^2.1.1
@@ -124,11 +105,11 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.4)(jiti@1.21.7)(tsx@4.23.15)
 
-  packages/web:
+  frontend:
     dependencies:
       '@intentguard/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../backend/core
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -169,6 +150,28 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
+
+  mcp:
+    dependencies:
+      '@intentguard/core':
+        specifier: workspace:*
+        version: link:../backend/core
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.30.0
+        version: 1.30.1(zod@3.25.76)
+      zod:
+        specifier: ^3.24.0
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@22.20.4)(jiti@1.21.7)(tsx@4.23.15)
 
 packages:
 

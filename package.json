@@ -14,17 +14,22 @@
     "start:web": "pnpm --filter @intentguard/web start",
     "start:server": "pnpm --filter @intentguard/server start",
     "test": "pnpm --filter @intentguard/core --filter @intentguard/server test",
-    "cli": "node packages/cli/dist/index.js",
-    "agents:setup": "node packages/cli/dist/index.js agents setup",
+    "cli": "node backend/cli/dist/index.js",
+    "agents:setup": "node backend/cli/dist/index.js agents setup",
+    "hooks:setup": "node scripts/setup-hooks.mjs",
+    "check:pii": "node scripts/check-pii.mjs --all",
+    "check:pii:staged": "node scripts/check-pii.mjs --staged",
+    "prepare": "node scripts/setup-hooks.mjs",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@intentguard/mcp-server": "workspace:*",
     "@types/node": "^22.0.0",
+    "prettier": "^3.4.0",
     "turbo": "^2.4.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0",
-    "prettier": "^3.4.0"
+    "vitest": "^3.0.0"
   },
   "packageManager": "pnpm@9.15.0",
   "engines": {

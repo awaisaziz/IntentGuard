@@ -10,10 +10,23 @@ out/
 # Turbo
 .turbo/
 
-# Environment
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment and secrets. Copy .env.example to .env and keep real values local.
+# The pre-commit hook and CI (scripts/check-pii.mjs) refuse these even if force-added.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
 
 # IDE
 .vscode/
@@ -28,12 +41,18 @@ Thumbs.db
 # Test
 coverage/
 
-# IntentGuard local data (specs are committed, but local state is not)
+# Temp
+tmp/
+
+# IntentGuard local state. Specs, proof reports, and config.json are committed; the active pointer is not.
 .intent/active.json
 
-# AI agent integrations: generated from packages/core/src/agents by `pnpm agents:setup`.
+# AI agent integrations: generated from backend/core/src/agents by `pnpm agents:setup`.
 # Each agent only reads its own fixed path, so these cannot share a folder.
 .mcp.json
 .cursor/
 .codex/
 .bob/
+
+# Personal Claude Code settings (permissions, local paths)
+.claude/settings.local.json

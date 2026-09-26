@@ -1,0 +1,15 @@
+#!/bin/sh
+# IntentGuard pre-commit: refuse commits that stage PII, secrets, env files,
+# local state, or generated agent configs. Installed by `pnpm install`
+# (scripts/setup-hooks.mjs sets core.hooksPath). Git runs hooks from the repo root.
+#
+# Skip once with `git commit --no-verify`, or set INTENTGUARD_SKIP_PII=1.
+
+[ "$INTENTGUARD_SKIP_PII" = "1" ] && exit 0
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "[intentguard] node not found on PATH; skipping PII/secret scan" >&2
+  exit 0
+fi
+
+exec node scripts/check-pii.mjs --staged

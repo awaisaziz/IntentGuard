@@ -37,13 +37,13 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 
 **Non-goals (this stage)**
 
-- Frontend dashboard work. `packages/web` stays as-is on mock data.
+- Frontend dashboard work. `frontend/` stays as-is on mock data.
 - Hosting, multi-user access, or authentication. IntentGuard runs locally against one repo.
 - Replacing the coding agent or the repo's own test runner.
 
 ## 5. Functional Requirements
 
-### 5.1 IntentSpec engine (`packages/core`)
+### 5.1 IntentSpec engine (`backend/core`)
 
 | ID | Requirement | Status |
 |---|---|---|
@@ -57,7 +57,7 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 | C-8 | Health metric checks | Not started: reported as `unknown` |
 | C-9 | Repo evidence gathering: changed files, related tests, docs, current behavior | Partial: docs and behavior are placeholders |
 
-### 5.2 MCP connector (`packages/mcp-server`)
+### 5.2 MCP connector (`mcp/`)
 
 | ID | Requirement | Status |
 |---|---|---|
@@ -65,7 +65,7 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 | M-2 | Resolve the project root from `INTENT_ROOT` or the git top level | Done |
 | M-3 | Publish `@intentguard/mcp-server` so `npx` works outside this repo | Not started |
 
-### 5.3 Agent integrations (`packages/core/src/agents`, CLI)
+### 5.3 Agent integrations (`backend/core/src/agents`, CLI)
 
 | ID | Requirement | Status |
 |---|---|---|
@@ -74,7 +74,7 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 | A-3 | Rule files update only a managed block and keep hand-written content | Done |
 | A-4 | Generated configs contain no absolute paths or personal data | Done |
 
-### 5.4 HTTP API (`packages/server`)
+### 5.4 HTTP API (`backend/server`)
 
 | ID | Requirement | Status |
 |---|---|---|
@@ -82,12 +82,21 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 | S-2 | Bind to localhost only, and reject path-like spec IDs | Done |
 | S-3 | Spec editing (`PATCH /api/specs/:id`) and status transitions | Not started |
 
-### 5.5 CLI (`packages/cli`)
+### 5.5 CLI (`backend/cli`)
 
 | ID | Requirement | Status |
 |---|---|---|
 | L-1 | `init`, `new`, `check`, `verify`, `report`, `commit` | Done |
 | L-2 | `commit` refuses to commit unless verification passes, and tags the message with `[intent:<id>]` | Done |
+
+### 5.6 Privacy and repository hygiene (`backend/core/src/privacy`, `scripts/`, `.githooks/`, `.github/`)
+
+| ID | Requirement | Status |
+|---|---|---|
+| P-1 | Local state, env files, private keys, and generated agent configs are git-ignored | Done |
+| P-2 | A dependency-free tripwire refuses forbidden files and scans for emails, phone numbers, credentials, private keys, card numbers, and local user paths; it runs as a pre-commit hook and in CI | Done |
+| P-3 | Specs and proof reports are redacted on save, and absolute paths are rewritten as `<repo>` or `~`; switches live under `privacy` in `.intent/config.json` | Done |
+| P-4 | CI builds and tests on Node 20 and 22, checks the demo spec's readiness gate, and verifies generated agent configs stay clean | Done |
 
 ## 6. Agent Roles (IBM Bob 2.0 Mapping)
 

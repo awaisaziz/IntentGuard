@@ -21,7 +21,7 @@ IntentGuard is a **local intent layer** for AI coding agents (IBM Bob 2.0, Claud
 git clone https://github.com/awaisaziz/IntentGuard.git
 cd IntentGuard
 
-# Install dependencies across all packages
+# Install dependencies across all packages (also enables the pre-commit PII/secret scan)
 pnpm install
 
 # Build all packages (@intentguard/core, server, mcp-server, cli, web)
@@ -114,7 +114,7 @@ You can execute the CLI binary directly or through the root npm script:
 pnpm run cli -- <command>
 
 # Or directly using Node
-node packages/cli/dist/index.js <command>
+node backend/cli/dist/index.js <command>
 ```
 
 ### CLI Command Reference
@@ -156,7 +156,7 @@ The Model Context Protocol (MCP) server allows AI agents (IBM Bob 2.0, Claude Co
 pnpm run agents:setup
 ```
 
-Each agent only reads MCP config from its own fixed location, so the files cannot share one folder. Instead, every agent is defined once in `packages/core/src/agents/`, and `agents:setup` generates the files each agent expects:
+Each agent only reads MCP config from its own fixed location, so the files cannot share one folder. Instead, every agent is defined once in `backend/core/src/agents/`, and `agents:setup` generates the files each agent expects:
 
 | Agent | MCP config (generated, git-ignored) | Rules |
 |---|---|---|
@@ -166,6 +166,8 @@ Each agent only reads MCP config from its own fixed location, so the files canno
 | **IBM Bob 2.0** | `.bob/mcp.json` | `AGENTS.md` + `.bob/rules.md` |
 
 Setup is safe to re-run. It merges into existing MCP configs without removing your other servers. In rule files it only rewrites the block between the `<!-- intentguard:start -->` and `<!-- intentguard:end -->` markers, so hand-written content is kept.
+
+Inside this repository, `npx @intentguard/mcp-server` resolves to the workspace build in `mcp/dist` (the root workspace links the package), so run `pnpm build` before starting an agent. Outside this repository the package must be published first (PRD M-3).
 
 ### 2. Manual Agent Configuration Example
 
@@ -209,21 +211,50 @@ pnpm --filter @intentguard/core run test:watch
 
 ---
 
+## Privacy and Secrets
+
+IntentSpecs, proof reports, and rule files are committed and end up in pull requests, so the repository is set up to never carry personal data or credentials:
+
+| Layer | What it does |
+|---|---|
+| `.gitignore` | Excludes `.env*` (except `.env.example`), private keys, `.intent/active.json`, and generated agent configs |
+| `scripts/check-pii.mjs` | Dependency-free tripwire: refuses forbidden files and scans text for emails, phone numbers, API tokens, private keys, card numbers, and local user paths |
+| `.githooks/pre-commit` | Runs the tripwire on staged lines. Enabled by `pnpm install`; re-run `pnpm hooks:setup` if needed |
+| GitHub Actions | Runs the tripwire on every tracked file, then builds and tests on Node 20 and 22 |
+| `@intentguard/core` privacy module | Redacts every spec and proof report on save and rewrites absolute paths as `<repo>` or `~`. Switches live under `privacy` in `.intent/config.json` |
+
+```bash
+# Scan everything tracked (what CI runs)
+pnpm check:pii
+
+# Scan what you are about to commit (what the hook runs)
+pnpm check:pii:staged
+```
+
+Mark a deliberate false positive with `pii:allow` on the same line. See [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the full rules.
+
+---
+
 ## Project Structure
 
 ```
 IntentGuard/
-├── packages/
-│   ├── core/          # IntentSpec engine, readiness gates, scope fence, verifier, agent registry
-│   ├── server/        # REST API over core (port 3848)
-│   ├── mcp-server/    # Model Context Protocol stdio server exposing 8 tools
-│   ├── cli/           # `intent` binary implementation
-│   └── web/           # Next.js 15 App Router local dashboard (port 3847)
-├── .intent/           # Local versioned intent store (specs, reports, config.json)
+├── frontend/          # Next.js 15 App Router dashboard, @intentguard/web (port 3847)
+├── backend/
+│   ├── core/          # IntentSpec engine, readiness gates, scope fence, verifier, privacy, agent registry
+│   ├── server/        # REST API over core, @intentguard/server (port 3848)
+│   └── cli/           # The `intent` command, @intentguard/cli
+├── mcp/               # MCP stdio server exposing the 8 intent_* tools, @intentguard/mcp-server
+├── scripts/           # check-pii.mjs (PII/secret tripwire), setup-hooks.mjs
+├── .githooks/         # Versioned git hooks (pre-commit runs the tripwire)
+├── .github/           # CI workflow
+├── .intent/           # Committed intent store: specs, proof reports, config.json
 ├── AGENTS.md          # Guide and IntentGuard rules for every AI agent
 ├── CLAUDE.md          # Claude Code entry point (imports AGENTS.md)
 ├── INTENT.md          # Intent methodology: IntentSpec, gates, scope fence, proof
-└── PRD.md             # Product requirements
+├── PRD.md             # Product requirements
+├── CONTRIBUTING.md    # Setup, change flow, privacy rules
+└── SECURITY.md        # What stays local, guarantees, incident steps
 ```
 
 Agent MCP configs (`.mcp.json`, `.cursor/`, `.codex/`, `.bob/`) are generated by `pnpm run agents:setup` and are not committed.

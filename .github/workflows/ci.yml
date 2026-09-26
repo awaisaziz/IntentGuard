@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  privacy-scan:
+    name: PII and secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Scan every tracked file for PII, credentials, and forbidden files
+        run: node scripts/check-pii.mjs --all
+
+  build-and-test:
+    name: Build and test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+      - name: Readiness gate passes on the demo spec
+        run: pnpm run cli -- check intent-demo-galaxium
+      - name: Generated agent configs carry no absolute paths or personal data
+        run: |
+          pnpm run agents:setup
+          node scripts/check-pii.mjs .mcp.json .cursor/mcp.json .codex/config.toml .bob/mcp.json .bob/rules.md AGENTS.md CLAUDE.md

@@ -43,7 +43,7 @@ When no spec ID is given, the **active spec** (`.intent/active.json`) is used. D
 | 7 | Health Metrics | `healthMetrics[]` | What must not degrade because of the change? |
 | 8 | Verification | `verification[]` | How will we prove the outcome was achieved? |
 
-The full schema is in `packages/core/src/schema/intentspec.ts`. Specs are stored as `.intent/specs/<id>.json`, with a Markdown rendering alongside.
+The full schema is in `backend/core/src/schema/intentspec.ts`. Specs are stored as `.intent/specs/<id>.json`, with a Markdown rendering alongside.
 
 Evidence items carry a `type` (`friction`, `quote`, `observation`, `metric`, `request`) and an optional `trust` level (`high`, `medium`, `low`).
 
@@ -84,6 +84,10 @@ Current limitations, which the proof report should not hide:
 - Related tests are found by file name only (`name.test.ts`, `name.spec.ts`, `__tests__/`), and are not executed yet.
 - Outcomes are mapped to tests heuristically.
 - Health metrics are reported as `unknown` and need manual review.
+
+## Privacy
+
+Specs and proof reports are committed, so they must never carry personal data or credentials. On save, the spec store (`backend/core/src/privacy/`) replaces email addresses, phone numbers, API tokens, private keys, payment card numbers, and local user paths with neutral markers, and rewrites the repository root and home directory as `<repo>` and `~`. Evidence should cite a source by identifier (ticket number, dashboard, file path) rather than quote a person's contact details. The switches are `privacy.redactSpecs` and `privacy.redactReports` in `.intent/config.json`, both on by default.
 
 ## Rules for Agents
 
