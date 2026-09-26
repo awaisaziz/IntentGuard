@@ -38,7 +38,8 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 **Non-goals (this stage)**
 
 - Frontend dashboard work. `frontend/` stays as-is on mock data.
-- Hosting, multi-user access, or authentication. IntentGuard runs locally against one repo.
+- Hosting, deployment, multi-user access, or authentication. IntentGuard runs and is tested locally against one repo.
+- Publishing packages to npm or any other registry. Everything runs from the local workspace build.
 - Replacing the coding agent or the repo's own test runner.
 
 ## 5. Functional Requirements
@@ -63,7 +64,7 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 |---|---|---|
 | M-1 | Stdio MCP server exposing `intent_create`, `intent_gather_evidence`, `intent_questions`, `intent_readiness`, `intent_get_spec`, `intent_check_scope`, `intent_verify`, `intent_report` | Done |
 | M-2 | Resolve the project root from `INTENT_ROOT` or the git top level | Done |
-| M-3 | Publish `@intentguard/mcp-server` so `npx` works outside this repo | Not started |
+| M-3 | Agents launch the local workspace build: `npx @intentguard/mcp-server` resolves to `mcp/dist` through the root workspace link | Done |
 
 ### 5.3 Agent integrations (`backend/core/src/agents`, CLI)
 
@@ -137,8 +138,7 @@ The demo runs the same vague request on **IBM Galaxium Travels** twice: plain Bo
 2. Real evidence gathering from docs and code structure (C-9).
 3. Health metric checks backed by commands defined in the spec (C-8).
 4. Spec editing and status transitions over the API (S-3).
-5. Publish the MCP server and CLI packages (M-3).
-6. After that: connect the web dashboard to the API.
+5. After that: connect the web dashboard to the API.
 
 ## 10. Open Questions
 

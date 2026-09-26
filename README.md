@@ -167,7 +167,7 @@ Each agent only reads MCP config from its own fixed location, so the files canno
 
 Setup is safe to re-run. It merges into existing MCP configs without removing your other servers. In rule files it only rewrites the block between the `<!-- intentguard:start -->` and `<!-- intentguard:end -->` markers, so hand-written content is kept.
 
-Inside this repository, `npx @intentguard/mcp-server` resolves to the workspace build in `mcp/dist` (the root workspace links the package), so run `pnpm build` before starting an agent. Outside this repository the package must be published first (PRD M-3).
+Inside this repository, `npx @intentguard/mcp-server` resolves to the workspace build in `mcp/dist` (the root workspace links the package), so run `pnpm build` before starting an agent. IntentGuard is local-only and is not published to npm, so start your agent from the repository root; anywhere else `npx` looks the package up on the npm registry and fails.
 
 ### 2. Manual Agent Configuration Example
 
