@@ -32,8 +32,34 @@ async function post(path: string, body: unknown, signal?: AbortSignal): Promise<
   return res;
 }
 
-export async function createSession(harness: boolean): Promise<ChatSession> {
-  return (await post('/chat', { harness })).json();
+export interface ModelChoice {
+  /** Provider id: 'openai' | 'watsonx' | 'deepseek' */
+  provider: string;
+  /** Model name to pass to the provider (e.g. 'deepseek-flash', 'gpt-4.1'). */
+  model: string;
+}
+
+export interface ProviderStatus {
+  id: string;
+  name: string;
+  configured: boolean;
+  envVar: string;
+}
+
+/** Which providers have a key configured on the backend. Keys themselves never leave the server. */
+export async function getProviders(): Promise<{ default: string | null; providers: ProviderStatus[] }> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/api/providers`, { headers: { Accept: 'application/json' } });
+  } catch {
+    throw new Error(`Cannot reach the IntentGuard backend at ${API_URL}. Start it with: pnpm dev:server`);
+  }
+  if (!res.ok) throw new Error(`Could not read providers (${res.status})`);
+  return res.json();
+}
+
+export async function createSession(harness: boolean, modelChoice?: ModelChoice): Promise<ChatSession> {
+  return (await post('/chat', { harness, provider: modelChoice?.provider, model: modelChoice?.model })).json();
 }
 
 export async function approveSpec(sessionId: string): Promise<SpecSnapshot> {

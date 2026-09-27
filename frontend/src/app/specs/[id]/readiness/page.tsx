@@ -1,24 +1,23 @@
-import { getSpecById } from '@/lib/api';
+import { getReadiness, getSpecById } from '@/lib/api';
 import GateChecklist from '@/components/gate-checklist';
 import ReadinessGauge from '@/components/readiness-gauge';
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { notFound } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 
 export default async function ReadinessPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const spec = await getSpecById(id);
-  if (!spec) notFound();
+  const [spec, readiness] = await Promise.all([getSpecById(id), getReadiness(id)]);
+  if (!spec || !readiness) notFound();
 
-  // Mocked gate data based on IntentGuard logic
-  const gates = [
-    { id: 'g1', name: 'Has Valid Objective', status: 'pass' as const },
-    { id: 'g2', name: 'Has Measurable Outcomes', status: 'pass' as const },
-    { id: 'g3', name: 'Scope Boundaries Defined', status: 'warn' as const, message: 'Consider adding explicit out-of-scope boundaries.' },
-    { id: 'g4', name: 'Evidence Backed', status: 'pass' as const },
-    { id: 'g5', name: 'Constraints Identified', status: 'fail' as const, message: 'No technical constraints provided.' },
-    { id: 'g6', name: 'Verification Strategy', status: 'pass' as const }
-  ];
+  const gates = readiness.gates.map(gate => ({
+    id: gate.name,
+    name: `${gate.name} (weight ${gate.weight})`,
+    status: gate.status,
+    message: gate.message,
+  }));
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -34,7 +33,34 @@ export default async function ReadinessPage({ params }: { params: Promise<{ id: 
           </h1>
           <p className="text-slate-500 mt-2 font-mono text-sm">{spec.id}</p>
         </div>
-        <ReadinessGauge score={80} size="md" />
+        <ReadinessGauge score={Math.round(readiness.score)} size="md" />
+      </div>
+
+      <div
+        className={
+          readiness.ready
+            ? 'p-4 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/20 dark:border-emerald-900 dark:text-emerald-300 text-sm'
+            : 'p-4 rounded-lg border border-red-200 bg-red-50 text-red-900 dark:bg-red-950/20 dark:border-red-900 dark:text-red-300 text-sm'
+        }
+      >
+        {readiness.ready ? (
+          <span className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4" /> Ready: the score meets the readiness threshold, so coding may start.
+          </span>
+        ) : (
+          <div>
+            <span className="flex items-center gap-2 font-medium">
+              <ShieldAlert className="w-4 h-4" /> Blocked: coding may not start until the score reaches the threshold.
+            </span>
+            {readiness.blockers.length > 0 && (
+              <ul className="mt-2 list-disc list-inside space-y-1">
+                {readiness.blockers.map(blocker => (
+                  <li key={blocker}>{blocker}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">

@@ -1,82 +1,87 @@
-// Mock API implementations for now in case core package is not yet fully available
-// Normally these would import from @intentguard/core
+import type { AgentStatus, IntentConfig, IntentSpec, ProofReport, ReadinessScore } from '@intentguard/core';
 
-export interface SpecScope {
-  inScope: string[];
-  outOfScope: string[];
-}
+export type { AgentStatus, IntentConfig, ProofReport, ReadinessScore };
 
-export interface Spec {
+/** A spec as the API lists it: the stored spec plus its live readiness score and active flag. */
+export type Spec = IntentSpec & { readinessScore?: number; active?: boolean };
+export type Evidence = NonNullable<IntentSpec['evidence']>[number];
+
+export interface ProviderStatus {
   id: string;
-  status: 'draft' | 'validated' | 'approved' | 'shipped' | 'verified';
-  objective: string;
-  outcomes: string[];
-  evidence?: { type: string; description: string; trustTier: string }[];
-  constraints?: string[];
-  scope?: SpecScope;
-  edgeCases?: string[];
-  healthMetrics?: string[];
-  verification?: string[];
-  problemSeverity?: string;
-  userGoal?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  name: string;
+  configured: boolean;
+  /** The variable to set in the IntentGuard .env file. */
+  envVar: string;
 }
 
-const mockSpecs: Spec[] = [
-  {
-    id: "SPEC-101",
-    status: "draft",
-    objective: "Implement a secure authentication system using JWT.",
-    outcomes: ["Users can log in", "Users can log out", "Tokens refresh automatically"],
-    evidence: [
-      { type: "request", description: "User requested OAuth2 support", trustTier: "backed" },
-      { type: "friction", description: "Current auth is slow", trustTier: "unreviewed" }
-    ],
-    scope: {
-      inScope: ["JWT Implementation", "Login Page UI"],
-      outOfScope: ["Social Login (Google/GitHub)", "MFA"]
-    },
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "SPEC-102",
-    status: "verified",
-    objective: "Optimize database queries for the main dashboard load.",
-    outcomes: ["P99 latency under 200ms", "Zero N+1 queries"],
-    evidence: [
-      { type: "metric", description: "Dashboard takes 2s to load", trustTier: "backed" }
-    ],
-    scope: {
-      inScope: ["Query Optimization", "Index Creation"],
-      outOfScope: ["Database Migration", "Schema changes"]
-    },
-    createdAt: new Date(Date.now() - 86400000).toISOString()
-  }
-];
+export interface ProvidersResponse {
+  /** Provider used when a chat session names none, or null when nothing is configured. */
+  default: string | null;
+  providers: ProviderStatus[];
+}
 
-export async function getProjectRoot(): Promise<string> {
-  return process.cwd();
+/** The backend (backend/server). Pages fetch from it on the server, so no CORS is involved. */
+export const API_URL = process.env.NEXT_PUBLIC_INTENTGUARD_API_URL ?? 'http://localhost:3848';
+
+/** Thrown when the backend cannot be reached; rendered by app/error.tsx. */
+export class BackendOfflineError extends Error {
+  constructor() {
+    super(`Cannot reach the IntentGuard backend at ${API_URL}. Start it with: pnpm dev:server`);
+    this.name = 'BackendOfflineError';
+  }
+}
+
+/**
+ * GETs a path from the API, always fresh.
+ * @returns The parsed body, or null when the API answers 404
+ * @throws BackendOfflineError when the backend is not running
+ */
+async function get<T>(path: string): Promise<T | null> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/api${path}`, { cache: 'no-store', headers: { Accept: 'application/json' } });
+  } catch {
+    throw new BackendOfflineError();
+  }
+  if (res.status === 404 || res.status === 400) return null;
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `The backend answered ${res.status} for ${path}`);
+  }
+  return (await res.json()) as T;
+}
+
+const id = (specId: string) => encodeURIComponent(specId);
+
+export async function getAllSpecs(): Promise<Spec[]> {
+  return (await get<Spec[]>('/specs')) ?? [];
 }
 
 export async function getActiveSpec(): Promise<Spec | null> {
-  return mockSpecs[0] || null;
+  return get<Spec>('/specs/active');
 }
 
-export async function getAllSpecs(): Promise<Spec[]> {
-  return mockSpecs;
+export async function getSpecById(specId: string): Promise<Spec | null> {
+  return get<Spec>(`/specs/${id(specId)}`);
 }
 
-export async function getSpecById(id: string): Promise<Spec | null> {
-  return mockSpecs.find(s => s.id === id) || null;
+export async function getReadiness(specId: string): Promise<ReadinessScore | null> {
+  return get<ReadinessScore>(`/specs/${id(specId)}/readiness`);
 }
 
-export async function getProofReport(id: string): Promise<any> {
-  return {
-    specId: id,
-    testsPassed: 45,
-    testsFailed: 0,
-    scopeViolations: [],
-    commitReady: true
-  };
+/** The last saved proof report, or null when the spec has not been verified yet. */
+export async function getProofReport(specId: string): Promise<ProofReport | null> {
+  return get<ProofReport>(`/specs/${id(specId)}/report`);
+}
+
+export async function getConfig(): Promise<IntentConfig | null> {
+  return get<IntentConfig>('/config');
+}
+
+export async function getAgents(): Promise<AgentStatus[]> {
+  return (await get<AgentStatus[]>('/agents')) ?? [];
+}
+
+export async function getProviders(): Promise<ProvidersResponse> {
+  return (await get<ProvidersResponse>('/providers')) ?? { default: null, providers: [] };
 }

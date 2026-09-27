@@ -5,9 +5,15 @@ import ReadinessGauge from '@/components/readiness-gauge';
 import Link from 'next/link';
 import { ArrowRight, Activity, ShieldCheck } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
+const STEP_BY_STATUS = { draft: 2, validated: 2, approved: 3, shipped: 4, verified: 5 } as const;
+
 export default async function HomePage() {
-  const activeSpec = await getActiveSpec();
-  const allSpecs = await getAllSpecs();
+  const [active, allSpecs] = await Promise.all([getActiveSpec(), getAllSpecs()]);
+  // The list carries the live readiness score; the active endpoint returns the stored spec
+  const activeSpec = active ? (allSpecs.find(s => s.id === active.id) ?? active) : null;
+  const score = Math.round(activeSpec?.readinessScore ?? 0);
 
   return (
     <div className="space-y-12">
@@ -17,7 +23,7 @@ export default async function HomePage() {
       </section>
 
       <section>
-        <IntentFlow currentStep={2} />
+        <IntentFlow currentStep={activeSpec ? STEP_BY_STATUS[activeSpec.status] : 1} />
       </section>
 
       <section className="grid md:grid-cols-3 gap-6">
@@ -58,9 +64,13 @@ export default async function HomePage() {
 
         <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center">
           <h2 className="text-lg font-bold mb-6 w-full text-left">Readiness Score</h2>
-          <ReadinessGauge score={activeSpec ? 85 : 0} size="lg" />
+          <ReadinessGauge score={score} size="lg" />
           <p className="mt-6 text-sm text-slate-500 text-center">
-            {activeSpec ? "Code is closely aligned with intent." : "Create a spec to see readiness."}
+            {!activeSpec
+              ? 'Create a spec to see readiness.'
+              : score >= 70
+                ? 'The active spec passes the readiness gate.'
+                : 'Blocked: the active spec is below the readiness gate.'}
           </p>
         </div>
       </section>
@@ -79,6 +89,9 @@ export default async function HomePage() {
           {allSpecs.slice(0, 3).map(spec => (
             <SpecCard key={spec.id} spec={spec} />
           ))}
+          {allSpecs.length === 0 && (
+            <div className="text-sm text-slate-500">No specs yet. Describe a change in Agent Chat to draft the first one.</div>
+          )}
         </div>
       </section>
     </div>

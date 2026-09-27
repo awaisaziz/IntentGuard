@@ -13,7 +13,12 @@ import {
   draftSpec,
   getAgentStatuses,
   IntentAgent,
-  WatsonxChatModel,
+  createChatModel as createModelFromEnv,
+  detectChatProvider,
+  hasOpenAICredentials,
+  hasWatsonxCredentials,
+  hasDeepSeekCredentials,
+  UnknownProviderError,
   type ChatModel,
   type IntentSpec,
 } from '@intentguard/core';
@@ -25,8 +30,12 @@ const MAX_CHAT_SESSIONS = 20;
 
 export const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:3847', 'http://127.0.0.1:3847'];
 
+export function defaultChatModel(): ChatModel {
+  return createModelFromEnv();
+}
+
 export interface AppOptions {
-  /** Creates the model for a new chat session (default: IBM watsonx from the environment). */
+  /** Creates the model for a new chat session (default: OpenAI, or watsonx, from the environment). */
   createChatModel?: () => ChatModel;
   /** Browser origins allowed to call the API (default: the local web dashboard). */
   allowedOrigins?: string[];
@@ -38,7 +47,7 @@ export interface AppOptions {
  */
 export function createApp(rootDir: string, options: AppOptions = {}): Hono {
   const store = new SpecStore(rootDir);
-  const createChatModel = options.createChatModel ?? (() => WatsonxChatModel.fromEnv());
+  const createChatModel = options.createChatModel ?? defaultChatModel;
   const allowedOrigins = options.allowedOrigins ?? DEFAULT_ALLOWED_ORIGINS;
   const sessions = new Map<string, IntentAgent>();
   const app = new Hono().basePath('/api');
@@ -82,6 +91,18 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
   app.get('/config', async c => c.json(await loadConfig(rootDir)));
 
   app.get('/agents', async c => c.json(await getAgentStatuses(rootDir)));
+
+  // Names and a configured flag only: keys never leave the server
+  app.get('/providers', c =>
+    c.json({
+      default: detectChatProvider() ?? null,
+      providers: [
+        { id: 'openai', name: 'OpenAI', configured: hasOpenAICredentials(), envVar: 'OPENAI_API_KEY' },
+        { id: 'deepseek', name: 'DeepSeek', configured: hasDeepSeekCredentials(), envVar: 'DEEPSEEK_API_KEY' },
+        { id: 'watsonx', name: 'IBM watsonx', configured: hasWatsonxCredentials(), envVar: 'WATSONX_API_KEY' },
+      ],
+    })
+  );
 
   app.get('/specs', async c => {
     const { readinessThreshold } = await loadConfig(rootDir);
@@ -154,7 +175,7 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
     return c.json(report);
   });
 
-  // ---------- Chat: a watsonx coding agent that works through the intent layer ----------
+  // ---------- Chat: a coding agent (OpenAI by default) that works through the intent layer ----------
 
   function chatSession(id: string): IntentAgent {
     const agent = sessions.get(id);
@@ -163,11 +184,12 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
   }
 
   app.post('/chat', async c => {
-    const { harness } = await readJson<{ harness: boolean }>(c.req);
+    const { harness, provider, model: modelId } = await readJson<{ harness: boolean; provider?: string; model?: string }>(c.req);
     let model: ChatModel;
     try {
-      model = createChatModel();
+      model = provider || modelId ? createModelFromEnv({ provider, model: modelId }) : createChatModel();
     } catch (err) {
+      if (err instanceof UnknownProviderError) throw new HTTPException(400, { message: err.message });
       throw new HTTPException(503, { message: err instanceof Error ? err.message : String(err) });
     }
     const agent = await IntentAgent.create({ rootDir, model, harness: harness !== false });

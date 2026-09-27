@@ -1,0 +1,70 @@
+{
+  "specId": "intent-sqvgz7vy",
+  "timestamp": 1790487069,
+  "verification": {
+    "passed": true,
+    "scopeViolations": [],
+    "outcomesChecked": [
+      {
+        "outcome": "The overview, specs list, spec detail, readiness and report pages render data fetched from the API on port 3848, with 0 hardcoded mock specs left in frontend/src",
+        "status": "pass",
+        "testFile": "backend/server/test/providers.test.ts"
+      },
+      {
+        "outcome": "The readiness page shows the 6 real gates and score returned by GET /api/specs/:id/readiness",
+        "status": "pass",
+        "testFile": "backend/server/test/providers.test.ts"
+      },
+      {
+        "outcome": "The report page shows the saved proof report, or a clear 'no report yet' state when the API answers 404",
+        "status": "pass",
+        "testFile": "backend/server/test/providers.test.ts"
+      },
+      {
+        "outcome": "GET /api/providers lists each chat provider with configured true or false, and the chat page disables models whose provider is not configured and starts on the first configured one",
+        "status": "pass",
+        "testFile": "backend/server/test/providers.test.ts"
+      },
+      {
+        "outcome": "The specs page search box and status filters change which specs are listed",
+        "status": "pass",
+        "testFile": "backend/server/test/providers.test.ts"
+      },
+      {
+        "outcome": "When the backend is not running, each page shows a message with the command to start it instead of crashing",
+        "status": "pass",
+        "testFile": "backend/server/test/providers.test.ts"
+      },
+      {
+        "outcome": "pnpm build and pnpm test pass",
+        "status": "pass",
+        "testFile": "backend/server/test/providers.test.ts"
+      }
+    ],
+    "healthMetricsChecked": [
+      {
+        "metric": "Existing server and core tests keep passing",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "The chat page streaming flow is unchanged",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "The API still rejects non-localhost hosts and foreign origins",
+        "status": "unknown",
+        "details": "Manual review required"
+      }
+    ],
+    "testsRun": [
+      {
+        "file": "backend/server/test/providers.test.ts",
+        "passed": true
+      }
+    ]
+  },
+  "summary": "All checks passed successfully.",
+  "commitReady": true
+}

@@ -1,0 +1,260 @@
+{
+  "id": "intent-sqvgz7vy",
+  "status": "approved",
+  "objective": "The dashboard cannot be demoed: every page except chat renders hardcoded mock specs, fake readiness gates and a fake proof report, and the chat page offers models whose API keys are not configured, so it fails on load. Connect every dashboard page to the local IntentGuard HTTP API so it shows the repository's real specs, readiness, reports, agents and providers.",
+  "outcomes": [
+    "The overview, specs list, spec detail, readiness and report pages render data fetched from the API on port 3848, with 0 hardcoded mock specs left in frontend/src",
+    "The readiness page shows the 6 real gates and score returned by GET /api/specs/:id/readiness",
+    "The report page shows the saved proof report, or a clear 'no report yet' state when the API answers 404",
+    "GET /api/providers lists each chat provider with configured true or false, and the chat page disables models whose provider is not configured and starts on the first configured one",
+    "The specs page search box and status filters change which specs are listed",
+    "When the backend is not running, each page shows a message with the command to start it instead of crashing",
+    "pnpm build and pnpm test pass"
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "lets focus on the frotnend webpage and forget about hte mcp part as that is not working adn we are very short on time so let amke that part work",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: .env.example",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: CHANGELOG.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-2",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: CONTRIBUTING.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-3",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: INTENT.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-4",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: PRD.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-5",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: README.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-6",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: SECURITY.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-7",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/cli/src/commands/chat.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-8",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/cli/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-9",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-10",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/provider.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-11",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/app.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-12",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-13",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/chat/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-14",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/lib/chat-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-15",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/deepseek-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-16",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/openai-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-17",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/openai.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-18",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/resolve.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-19",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/test/openai.test.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-mujdkuoc-0",
+      "type": "observation",
+      "excerpt": "getAllSpecs, getSpecById and getProofReport return hardcoded mock objects (SPEC-101, SPEC-102, testsPassed 45)",
+      "source": "frontend/src/lib/api.ts"
+    },
+    {
+      "id": "ev-mujdkuoc-1",
+      "type": "observation",
+      "excerpt": "Gates are a hardcoded array and the gauge is fixed at 80",
+      "source": "frontend/src/app/specs/[id]/readiness/page.tsx"
+    },
+    {
+      "id": "ev-mujdkuoc-2",
+      "type": "observation",
+      "excerpt": "With no .env, POST /api/chat answers 'OpenAI is not configured', while GET /api/specs returns the real specs",
+      "source": "backend/server"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "frontend/src/**",
+      "backend/server/src/app.ts",
+      "backend/server/test/**",
+      "README.md"
+    ],
+    "outOfScope": [
+      "mcp/**",
+      "backend/core/**",
+      "backend/cli/**",
+      "scripts/**",
+      ".github/**",
+      "frontend/package.json"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "The backend is not running",
+      "expectedBehavior": "Pages render a notice telling the user to run pnpm dev:server"
+    },
+    {
+      "scenario": "A spec id in the URL does not exist",
+      "expectedBehavior": "The page shows Next.js not-found"
+    },
+    {
+      "scenario": "A spec has no proof report yet",
+      "expectedBehavior": "The report page says so and explains how to create one"
+    },
+    {
+      "scenario": "No provider key is configured",
+      "expectedBehavior": "The chat page names the variable to set in .env and creates no session"
+    },
+    {
+      "scenario": "There is no active spec or no specs at all",
+      "expectedBehavior": "Empty states instead of errors"
+    }
+  ],
+  "constraints": [
+    "No new npm dependencies",
+    "API keys never reach the browser: the providers endpoint returns only names and a configured flag",
+    "Keep the existing visual design and components"
+  ],
+  "healthMetrics": [
+    "Existing server and core tests keep passing",
+    "The chat page streaming flow is unchanged",
+    "The API still rejects non-localhost hosts and foreign origins"
+  ],
+  "verification": [
+    "New server test for GET /api/providers",
+    "Run the API and dashboard locally and load each page in the browser, with the backend up and down",
+    "pnpm build, pnpm test, pnpm check:pii"
+  ],
+  "createdAt": 1790486718,
+  "updatedAt": 1790486751,
+  "rawRequest": "lets focus on the frotnend webpage and forget about hte mcp part as that is not working adn we are very short on time so let amke that part work",
+  "userGoal": "Open the dashboard during the hackathon demo and see real IntentGuard data, and chat with whichever model has a key configured.",
+  "readinessScore": 100
+}

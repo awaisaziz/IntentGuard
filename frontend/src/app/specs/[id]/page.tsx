@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Target, ShieldAlert, CheckCircle2, ShieldCheck, Activity } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default async function SpecDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const spec = await getSpecById(id);
@@ -27,7 +29,7 @@ export default async function SpecDetailPage({ params }: { params: Promise<{ id:
         <h1 className="text-3xl font-bold leading-tight">{spec.objective}</h1>
       </header>
 
-      <div className="grid grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
         <Link href={`/specs/${spec.id}/readiness`} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-brand-teal transition-all flex items-center justify-between group">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 rounded-lg"><ShieldCheck className="w-5 h-5" /></div>

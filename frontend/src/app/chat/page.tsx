@@ -1,19 +1,29 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageSquare, Send, Square, RotateCcw, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Square, RotateCcw, Loader2, ChevronDown } from 'lucide-react';
 import Transcript, { type TranscriptItem } from '@/components/chat/transcript';
 import SpecPanel from '@/components/chat/spec-panel';
 import MetricsPanel from '@/components/chat/metrics-panel';
 import {
   approveSpec,
   createSession,
+  getProviders,
   sendMessage,
   type AgentEvent,
   type AgentMetrics,
   type ChatSession,
+  type ModelChoice,
   type SpecSnapshot,
 } from '@/lib/chat-client';
+
+/** Available models shown in the selector. */
+const MODEL_OPTIONS: Array<{ label: string; provider: string; model: string }> = [
+  { label: 'OpenAI — gpt-4.1', provider: 'openai', model: 'gpt-4.1' },
+  { label: 'OpenAI — o4-mini', provider: 'openai', model: 'o4-mini' },
+  { label: 'DeepSeek — deepseek-flash', provider: 'deepseek', model: 'deepseek-flash' },
+  { label: 'watsonx — Granite 4', provider: 'watsonx', model: 'ibm/granite-4-h-small' },
+];
 
 function target(args: Record<string, unknown>): string {
   const value = args.path ?? args.query ?? args.name ?? args.request ?? '';
@@ -23,6 +33,11 @@ function target(args: Record<string, unknown>): string {
 
 export default function ChatPage() {
   const [harness, setHarness] = useState(true);
+  const [modelChoice, setModelChoice] = useState<ModelChoice>(
+    { provider: MODEL_OPTIONS[0].provider, model: MODEL_OPTIONS[0].model }
+  );
+  /** provider id -> has a key on the backend; null until loaded */
+  const [configured, setConfigured] = useState<Record<string, boolean> | null>(null);
   const [session, setSession] = useState<ChatSession | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
   const [items, setItems] = useState<TranscriptItem[]>([]);
@@ -34,13 +49,13 @@ export default function ChatPage() {
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const start = useCallback(async (withHarness: boolean) => {
+  const start = useCallback(async (withHarness: boolean, choice?: ModelChoice) => {
     setSession(null);
     setSetupError(null);
     setItems([]);
     setMetrics(null);
     try {
-      const s = await createSession(withHarness);
+      const s = await createSession(withHarness, choice);
       setSession(s);
       setSpec(s.spec);
     } catch (err) {
@@ -49,7 +64,42 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    start(harness);
+    let cancelled = false;
+    (async () => {
+      let choice = modelChoice;
+      if (!configured) {
+        try {
+          const status = await getProviders();
+          if (cancelled) return;
+          const map = Object.fromEntries(status.providers.map(p => [p.id, p.configured]));
+          setConfigured(map);
+          const usable = MODEL_OPTIONS.find(o => map[o.provider]);
+          if (!usable) {
+            const vars = status.providers.map(p => p.envVar).join(' or ');
+            setSetupError(
+              `No model provider is configured.
+
+1. Copy .env.example to .env in the IntentGuard folder.
+2. Set ${vars || 'OPENAI_API_KEY'} to your key.
+3. Restart the backend: pnpm dev:server`
+            );
+            return;
+          }
+          if (!map[choice.provider]) {
+            choice = { provider: usable.provider, model: usable.model };
+            setModelChoice(choice);
+          }
+        } catch (err) {
+          if (!cancelled) setSetupError((err as Error).message);
+          return;
+        }
+      }
+      if (!cancelled) start(harness, choice);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [harness, start]);
 
   useEffect(() => {
@@ -137,6 +187,15 @@ export default function ChatPage() {
     setHarness(next);
   };
 
+  const switchModel = (opt: typeof MODEL_OPTIONS[number]) => {
+    if (running) return;
+    const choice: ModelChoice = { provider: opt.provider, model: opt.model };
+    const msg = items.length ? 'Switching model starts a new session. Continue?' : null;
+    if (msg && !window.confirm(msg)) return;
+    setModelChoice(choice);
+    start(harness, choice);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -145,10 +204,34 @@ export default function ChatPage() {
             <MessageSquare className="w-8 h-8 text-brand-teal" /> Agent Chat
           </h1>
           <p className="text-slate-500 mt-1">
-            An IBM watsonx coding agent working in the connected repository{session ? ` · ${session.model}` : ''}.
+            An AI coding agent working in the connected repository{session ? ` · ${session.model}` : ''}.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Model selector */}
+          <div className="relative">
+            <select
+              value={`${modelChoice.provider}:${modelChoice.model}`}
+              disabled={running}
+              onChange={e => {
+                const opt = MODEL_OPTIONS.find(o => `${o.provider}:${o.model}` === e.target.value);
+                if (opt) switchModel(opt);
+              }}
+              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-teal disabled:opacity-40 cursor-pointer"
+            >
+              {MODEL_OPTIONS.map(o => (
+                <option
+                  key={`${o.provider}:${o.model}`}
+                  value={`${o.provider}:${o.model}`}
+                  disabled={configured ? !configured[o.provider] : false}
+                >
+                  {o.label}
+                  {configured && !configured[o.provider] ? ' (no key)' : ''}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          </div>
           <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-800 p-1 bg-white dark:bg-slate-900 text-sm font-medium">
             <button
               onClick={() => switchMode(true)}
@@ -164,7 +247,7 @@ export default function ChatPage() {
             </button>
           </div>
           <button
-            onClick={() => start(harness)}
+            onClick={() => start(harness, modelChoice)}
             disabled={running}
             title="New session"
             className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 disabled:opacity-40"
