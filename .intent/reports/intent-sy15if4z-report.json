@@ -1,0 +1,79 @@
+{
+  "specId": "intent-sy15if4z",
+  "timestamp": 1790488399,
+  "verification": {
+    "passed": true,
+    "scopeViolations": [],
+    "outcomesChecked": [
+      {
+        "outcome": "POST /api/workspaces with a https://github.com/owner/repo URL clones it into workspaces/owner__repo, creates .intent/config.json there, makes it the active repository and returns its name, branch and spec count",
+        "status": "pass",
+        "testFile": "backend/core/test/workspaces.test.ts"
+      },
+      {
+        "outcome": "After switching, GET /api/specs, /api/config and new chat sessions read from the cloned repository, and switching back to the IntentGuard repository restores its specs",
+        "status": "pass",
+        "testFile": "backend/core/test/workspaces.test.ts"
+      },
+      {
+        "outcome": "The workspaces folder is git-ignored: git status in IntentGuard shows 0 files from a cloned repository",
+        "status": "pass",
+        "testFile": "backend/core/test/workspaces.test.ts"
+      },
+      {
+        "outcome": "The landing page shows the active repository, a connect form, the list of cloned repositories, and progress: spec counts per status and average readiness",
+        "status": "pass",
+        "testFile": "backend/core/test/workspaces.test.ts"
+      },
+      {
+        "outcome": "The spec detail page shows all 8 IntentSpec sections",
+        "status": "pass",
+        "testFile": "backend/core/test/workspaces.test.ts"
+      },
+      {
+        "outcome": "The navbar shows the active repository and highlights the current page",
+        "status": "pass",
+        "testFile": "backend/core/test/workspaces.test.ts"
+      },
+      {
+        "outcome": "The active repository survives a restart of the API server",
+        "status": "pass",
+        "testFile": "backend/core/test/workspaces.test.ts"
+      },
+      {
+        "outcome": "pnpm build, pnpm test and pnpm check:pii pass",
+        "status": "pass",
+        "testFile": "backend/core/test/workspaces.test.ts"
+      }
+    ],
+    "healthMetricsChecked": [
+      {
+        "metric": "All existing tests keep passing",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "The chat streaming flow keeps working",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "The PII scan stays clean and no cloned file is ever staged",
+        "status": "unknown",
+        "details": "Manual review required"
+      }
+    ],
+    "testsRun": [
+      {
+        "file": "backend/core/test/workspaces.test.ts",
+        "passed": true
+      },
+      {
+        "file": "backend/server/test/workspaces.test.ts",
+        "passed": true
+      }
+    ]
+  },
+  "summary": "All checks passed successfully.",
+  "commitReady": true
+}

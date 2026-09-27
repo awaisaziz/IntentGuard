@@ -1,0 +1,129 @@
+{
+  "id": "intent-sy15if4z",
+  "status": "approved",
+  "objective": "The dashboard can only show the one folder the API server was started in, and its pages look like a prototype, so it cannot be demoed on a real project. Let the user paste a GitHub URL in the dashboard: IntentGuard clones that repository into a git-ignored workspaces folder inside the IntentGuard checkout, initialises the intent layer in it, and switches the whole dashboard (specs, readiness, reports, chat agent) to that repository. Improve the landing page and the other pages so progress is visible at a glance.",
+  "outcomes": [
+    "POST /api/workspaces with a https://github.com/owner/repo URL clones it into workspaces/owner__repo, creates .intent/config.json there, makes it the active repository and returns its name, branch and spec count",
+    "After switching, GET /api/specs, /api/config and new chat sessions read from the cloned repository, and switching back to the IntentGuard repository restores its specs",
+    "The workspaces folder is git-ignored: git status in IntentGuard shows 0 files from a cloned repository",
+    "The landing page shows the active repository, a connect form, the list of cloned repositories, and progress: spec counts per status and average readiness",
+    "The spec detail page shows all 8 IntentSpec sections",
+    "The navbar shows the active repository and highlights the current page",
+    "The active repository survives a restart of the API server",
+    "pnpm build, pnpm test and pnpm check:pii pass"
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "Improve the UI of the landing page and other pages as well ensure we can place the url of the github so that i can pull information and then image we clone that repo and inside it we create a folder where we clone and gitignore our repo and from there we can run this web interface as it is this way for that repo it will sho the specs files created the progress etc",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/lib/api.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: package.json",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-mujeapqe-0",
+      "type": "observation",
+      "excerpt": "createApp(rootDir) binds one fixed root and one SpecStore for the life of the server",
+      "source": "backend/server/src/app.ts"
+    },
+    {
+      "id": "ev-mujeapqe-1",
+      "type": "observation",
+      "excerpt": "connectRepo already initialises .intent in any repository and keeps machine-specific files out of its git history",
+      "source": "backend/core/src/workflow/connect.ts"
+    },
+    {
+      "id": "ev-mujeapqe-2",
+      "type": "quote",
+      "excerpt": "place the url of the github so that i can pull information ... for that repo it will show the specs files created the progress",
+      "source": "developer"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "frontend/src/**",
+      "backend/core/src/workflow/workspaces.ts",
+      "backend/core/src/index.ts",
+      "backend/core/test/workspaces.test.ts",
+      "backend/server/src/app.ts",
+      "backend/server/src/index.ts",
+      "backend/server/test/**",
+      ".gitignore",
+      "README.md",
+      "CHANGELOG.md",
+      "package.json"
+    ],
+    "outOfScope": [
+      "mcp/**",
+      "backend/cli/**",
+      "backend/core/src/agent/**",
+      "backend/core/src/llm/**",
+      "backend/core/src/privacy/**",
+      "scripts/**",
+      ".github/**",
+      "frontend/package.json"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "The URL is not a GitHub repository URL, or carries extra path segments or shell characters",
+      "expectedBehavior": "400 with a message showing the expected format; nothing is cloned"
+    },
+    {
+      "scenario": "The repository was already cloned",
+      "expectedBehavior": "It is updated with a fast-forward pull when possible and activated; local changes are never discarded"
+    },
+    {
+      "scenario": "The repository does not exist or is private without stored credentials",
+      "expectedBehavior": "502 with git's error message, and no half-cloned folder is left behind"
+    },
+    {
+      "scenario": "A chat session is running when the repository is switched",
+      "expectedBehavior": "The switch is refused with 409 until the agent stops"
+    },
+    {
+      "scenario": "The saved active workspace folder was deleted",
+      "expectedBehavior": "The server falls back to its start folder"
+    }
+  ],
+  "constraints": [
+    "Only https://github.com/<owner>/<repo> URLs are accepted; the URL is validated and passed to git as an argument, never through a shell",
+    "Clones land only inside the IntentGuard workspaces folder; the folder name is derived from the validated owner and repo, so no path traversal is possible",
+    "git must never prompt for credentials (it would hang the server)",
+    "No new npm dependencies; simple-git is already a dependency of core",
+    "The API stays localhost-only with the existing origin checks"
+  ],
+  "healthMetrics": [
+    "All existing tests keep passing",
+    "The chat streaming flow keeps working",
+    "The PII scan stays clean and no cloned file is ever staged"
+  ],
+  "verification": [
+    "backend/core/test/workspaces.test.ts covers URL parsing and cloning from a local bare repository",
+    "backend/server/test/workspaces.test.ts covers listing, switching and the 400 and 409 cases",
+    "Manual: clone a public GitHub repository through the dashboard and load every page",
+    "pnpm build, pnpm test, pnpm check:pii"
+  ],
+  "createdAt": 1790487904,
+  "updatedAt": 1790487984,
+  "rawRequest": "Improve the UI of the landing page and other pages as well ensure we can place the url of the github so that i can pull information and then image we clone that repo and inside it we create a folder where we clone and gitignore our repo and from there we can run this web interface as it is this way for that repo it will sho the specs files created the progress etc",
+  "userGoal": "Paste a GitHub URL, then see and drive that repository's IntentSpecs and progress from the same web interface.",
+  "readinessScore": 100
+}

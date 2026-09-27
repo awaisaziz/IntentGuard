@@ -19,6 +19,13 @@ import {
   hasWatsonxCredentials,
   hasDeepSeekCredentials,
   UnknownProviderError,
+  cloneWorkspace,
+  describeWorkspace,
+  listWorkspaces,
+  resolveWorkspace,
+  writeActiveWorkspace,
+  WorkspaceCloneError,
+  WorkspaceUrlError,
   type ChatModel,
   type IntentSpec,
 } from '@intentguard/core';
@@ -39,14 +46,24 @@ export interface AppOptions {
   createChatModel?: () => ChatModel;
   /** Browser origins allowed to call the API (default: the local web dashboard). */
   allowedOrigins?: string[];
+  /** IntentGuard checkout that holds the workspaces/ folder (default: located automatically). */
+  home?: string;
+  /** Repository the server was started for, which "start" switches back to (default: rootDir). */
+  startRoot?: string;
+  /** Name of the workspace that rootDir is, when the server starts inside one. */
+  activeWorkspace?: string;
 }
 
 /**
  * Builds the IntentGuard HTTP API over a project root.
  * @param rootDir Project root containing the .intent directory
  */
-export function createApp(rootDir: string, options: AppOptions = {}): Hono {
-  const store = new SpecStore(rootDir);
+export function createApp(initialRoot: string, options: AppOptions = {}): Hono {
+  // The dashboard can switch repositories, so handlers read these at call time
+  let rootDir = initialRoot;
+  let store = new SpecStore(rootDir);
+  let activeWorkspace: string | null = options.activeWorkspace ?? null;
+  const startRoot = options.startRoot ?? initialRoot;
   const createChatModel = options.createChatModel ?? defaultChatModel;
   const allowedOrigins = options.allowedOrigins ?? DEFAULT_ALLOWED_ORIGINS;
   const sessions = new Map<string, IntentAgent>();
@@ -91,6 +108,58 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
   app.get('/config', async c => c.json(await loadConfig(rootDir)));
 
   app.get('/agents', async c => c.json(await getAgentStatuses(rootDir)));
+
+  // ---------- Workspaces: repositories cloned from GitHub into <IntentGuard>/workspaces ----------
+
+  async function workspaceState() {
+    return {
+      active: activeWorkspace,
+      current: await describeWorkspace(rootDir, activeWorkspace ?? undefined),
+      start: await describeWorkspace(startRoot),
+      workspaces: await listWorkspaces(options.home).catch(() => []),
+    };
+  }
+
+  async function switchTo(root: string, name: string | null): Promise<void> {
+    for (const agent of sessions.values()) {
+      if (agent.isBusy) {
+        throw new HTTPException(409, { message: 'The chat agent is working. Stop it before switching repository.' });
+      }
+    }
+    sessions.clear();
+    rootDir = root;
+    store = new SpecStore(root);
+    activeWorkspace = name;
+    await writeActiveWorkspace(name, options.home).catch(() => undefined);
+  }
+
+  app.get('/workspaces', async c => c.json(await workspaceState()));
+
+  app.post('/workspaces', async c => {
+    const { url } = await readJson<{ url: string }>(c.req);
+    if (typeof url !== 'string' || !url.trim()) throw new HTTPException(400, { message: '"url" is required' });
+    try {
+      const result = await cloneWorkspace(url, { home: options.home });
+      await switchTo(result.workspace.root, result.workspace.name);
+      return c.json({ ...(await workspaceState()), cloned: result.cloned, updated: result.updated }, result.cloned ? 201 : 200);
+    } catch (err) {
+      if (err instanceof WorkspaceUrlError) throw new HTTPException(400, { message: err.message });
+      if (err instanceof WorkspaceCloneError) throw new HTTPException(502, { message: err.message });
+      throw err;
+    }
+  });
+
+  app.post('/workspaces/activate', async c => {
+    const { name } = await readJson<{ name: string | null }>(c.req);
+    if (name === null || name === undefined || name === '') {
+      await switchTo(startRoot, null);
+      return c.json(await workspaceState());
+    }
+    const root = typeof name === 'string' ? await resolveWorkspace(name, options.home) : undefined;
+    if (!root) throw new HTTPException(404, { message: `Workspace ${String(name)} not found` });
+    await switchTo(root, name);
+    return c.json(await workspaceState());
+  });
 
   // Names and a configured flag only: keys never leave the server
   app.get('/providers', c =>

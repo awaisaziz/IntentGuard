@@ -44,6 +44,10 @@ coverage/
 # Temp
 tmp/
 
+# Repositories cloned through the dashboard (POST /api/workspaces). They are other
+# projects' code and must never enter this repository's history.
+workspaces/
+
 # IntentGuard local state. Specs, proof reports, and config.json are committed; the active
 # pointer and chat run logs are not.
 .intent/active.json

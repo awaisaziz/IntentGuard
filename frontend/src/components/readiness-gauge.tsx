@@ -1,40 +1,30 @@
 import { cn } from '@/lib/utils';
 
-export default function ReadinessGauge({ score, size = "md" }: { score: number, size?: "sm" | "md" | "lg" }) {
-  let color = "text-red-500";
-  let bg = "bg-red-500";
-  
-  if (score >= 70) {
-    color = "text-emerald-500";
-    bg = "bg-emerald-500";
-  } else if (score >= 50) {
-    color = "text-amber-500";
-    bg = "bg-amber-500";
-  }
+const sizes = {
+  sm: { box: 'w-12 h-12', value: 'text-xs', unit: 'text-[8px]' },
+  md: { box: 'w-24 h-24', value: 'text-xl', unit: 'text-xs' },
+  lg: { box: 'w-36 h-36', value: 'text-3xl', unit: 'text-base' },
+};
 
-  const radius = 38;
+/** Ring gauge. The number is sized to sit inside the ring at every size, including "100". */
+export default function ReadinessGauge({ score, size = 'md' }: { score: number; size?: keyof typeof sizes }) {
+  const value = Math.max(0, Math.min(100, Math.round(score)));
+  const color = value >= 70 ? 'text-emerald-500' : value >= 50 ? 'text-amber-500' : 'text-red-500';
+
+  const radius = 42;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
-
-  const sizes = {
-    sm: "w-12 h-12 text-sm",
-    md: "w-24 h-24 text-2xl",
-    lg: "w-32 h-32 text-4xl"
-  };
+  const offset = circumference - (value / 100) * circumference;
+  const s = sizes[size];
 
   return (
-    <div className={cn("relative flex items-center justify-center", sizes[size])}>
-      <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 100 100">
-        <circle 
-          className="text-slate-200 dark:text-slate-800"
-          strokeWidth="8"
-          stroke="currentColor"
-          fill="transparent"
-          r={radius}
-          cx="50"
-          cy="50"
-        />
-        <circle 
+    <div
+      className={cn('relative shrink-0', s.box)}
+      role="img"
+      aria-label={`Readiness ${value} percent`}
+    >
+      <svg className="-rotate-90 w-full h-full" viewBox="0 0 100 100">
+        <circle className="text-slate-200 dark:text-slate-800" strokeWidth="8" stroke="currentColor" fill="transparent" r={radius} cx="50" cy="50" />
+        <circle
           className={color}
           strokeWidth="8"
           strokeDasharray={circumference}
@@ -47,8 +37,11 @@ export default function ReadinessGauge({ score, size = "md" }: { score: number, 
           cy="50"
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center font-bold text-slate-900 dark:text-white">
-        <span>{score}%</span>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className={cn('font-bold leading-none tabular-nums text-slate-900 dark:text-white', s.value)}>
+          {value}
+          <span className={cn('font-semibold text-slate-500 ml-0.5', s.unit)}>%</span>
+        </span>
       </div>
     </div>
   );

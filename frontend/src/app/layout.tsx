@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description: 'Visualize and manage your AI coding IntentSpecs.',
 };
 
+// The navbar shows the active repository, which changes at runtime
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: {
@@ -19,9 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50`}>
         <Navbar />
-        <main className="container mx-auto px-4 py-8">
-          {children}
-        </main>
+        <main className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-8">{children}</main>
       </body>
     </html>
   );

@@ -14,6 +14,23 @@ export interface ProviderStatus {
   envVar: string;
 }
 
+export interface WorkspaceInfo {
+  name: string;
+  root: string;
+  remote?: string;
+  branch?: string;
+  specs: number;
+  lastCommit?: { hash: string; message: string; date: string };
+}
+
+export interface WorkspaceState {
+  /** Name of the active cloned repository, or null when the start repository is shown. */
+  active: string | null;
+  current: WorkspaceInfo;
+  start: WorkspaceInfo;
+  workspaces: WorkspaceInfo[];
+}
+
 export interface ProvidersResponse {
   /** Provider used when a chat session names none, or null when nothing is configured. */
   default: string | null;
@@ -36,13 +53,19 @@ export class BackendOfflineError extends Error {
  * @returns The parsed body, or null when the API answers 404
  * @throws BackendOfflineError when the backend is not running
  */
-async function get<T>(path: string): Promise<T | null> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_URL}/api${path}`, { cache: 'no-store', headers: { Accept: 'application/json' } });
-  } catch {
-    throw new BackendOfflineError();
+async function get<T>(path: string, attempts = 6): Promise<T | null> {
+  // `pnpm dev:app` starts the API and the dashboard together, so the first page load can
+  // arrive before the API is listening. Retry for about three seconds before giving up.
+  let res: Response | undefined;
+  for (let attempt = 0; attempt < attempts && !res; attempt++) {
+    if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 600));
+    try {
+      res = await fetch(`${API_URL}/api${path}`, { cache: 'no-store', headers: { Accept: 'application/json' } });
+    } catch {
+      // Not listening yet
+    }
   }
+  if (!res) throw new BackendOfflineError();
   if (res.status === 404 || res.status === 400) return null;
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -84,4 +107,23 @@ export async function getAgents(): Promise<AgentStatus[]> {
 
 export async function getProviders(): Promise<ProvidersResponse> {
   return (await get<ProvidersResponse>('/providers')) ?? { default: null, providers: [] };
+}
+
+export async function getWorkspaces(): Promise<WorkspaceState | null> {
+  return get<WorkspaceState>('/workspaces');
+}
+
+/** For the navbar: one quick attempt, and null instead of an error when the backend is down. */
+export async function getWorkspacesQuietly(): Promise<WorkspaceState | null> {
+  try {
+    return await get<WorkspaceState>('/workspaces', 1);
+  } catch {
+    return null;
+  }
+}
+
+/** "owner/repo" for a GitHub remote, otherwise the folder name. */
+export function repoLabel(workspace: WorkspaceInfo): string {
+  const match = /github\.com[/:]([^/]+)\/([^/]+?)(?:\.git)?$/i.exec(workspace.remote ?? '');
+  return match ? `${match[1]}/${match[2]}` : workspace.name.replace('__', '/');
 }

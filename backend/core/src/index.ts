@@ -31,6 +31,7 @@ export * from './llm/deepseek-client.js';
 export * from './llm/resolve.js';
 
 export * from './workflow/draft.js';
+export * from './workflow/workspaces.js';
 export * from './workflow/checks.js';
 export * from './workflow/connect.js';
 export * from './workflow/update.js';
