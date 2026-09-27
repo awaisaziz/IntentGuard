@@ -1,0 +1,334 @@
+{
+  "id": "intent-uhu85vez",
+  "status": "draft",
+  "objective": "Add DeepSeek as a third LLM provider alongside OpenAI and IBM Bob. Add a model selector in the frontend chat interface so the user can pick which model/provider to use (OpenAI, IBM Bob, or DeepSeek). Validate the API key for the selected model before sending. Use the model 'deepseek-flash' for DeepSeek with its own API key (DEEPSEEK_API_KEY). Wire up the backend to route to the correct provider based on the selected model.",
+  "outcomes": [],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "Add DeepSeek as a third LLM provider alongside OpenAI and IBM Bob. Add a model selector in the frontend chat interface so the user can pick which model/provider to use (OpenAI, IBM Bob, or DeepSeek). Validate the API key for the selected model before sending. Use the model 'deepseek-flash' for DeepSeek with its own API key (DEEPSEEK_API_KEY). Wire up the backend to route to the correct provider based on the selected model.",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: .env.example",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: CHANGELOG.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-2",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: CONTRIBUTING.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-3",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: INTENT.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-4",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: PRD.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-5",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: README.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-6",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: SECURITY.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-7",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/cli/src/commands/chat.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-8",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/cli/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-9",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-10",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/provider.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-11",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/app.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-12",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-13",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/chat/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-14",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/openai-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-15",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/openai.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-16",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/resolve.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-17",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/test/openai.test.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-0",
+      "type": "observation",
+      "excerpt": "Gathered evidence: .env.example",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-1",
+      "type": "observation",
+      "excerpt": "Gathered evidence: CHANGELOG.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-2",
+      "type": "observation",
+      "excerpt": "Gathered evidence: CONTRIBUTING.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-3",
+      "type": "observation",
+      "excerpt": "Gathered evidence: INTENT.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-4",
+      "type": "observation",
+      "excerpt": "Gathered evidence: PRD.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-5",
+      "type": "observation",
+      "excerpt": "Gathered evidence: README.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-6",
+      "type": "observation",
+      "excerpt": "Gathered evidence: SECURITY.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-[card number redacted]",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/cli/src/commands/chat.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-8",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/cli/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-9",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-10",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/llm/provider.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-[card number redacted]",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/server/src/app.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-12",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/server/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-13",
+      "type": "observation",
+      "excerpt": "Gathered evidence: frontend/src/app/chat/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-14",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/llm/openai-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-15",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/llm/openai.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-16",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/llm/resolve.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790464175548-17",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/test/openai.test.ts",
+      "anchors": [
+        "objective"
+      ]
+    }
+  ],
+  "scope": {
+    "inScope": [
+      ".env.example",
+      "CHANGELOG.md",
+      "CONTRIBUTING.md",
+      "INTENT.md",
+      "PRD.md",
+      "README.md",
+      "SECURITY.md",
+      "backend/cli/src/commands/chat.ts",
+      "backend/cli/src/index.ts",
+      "backend/core/src/index.ts",
+      "backend/core/src/llm/provider.ts",
+      "backend/server/src/app.ts",
+      "backend/server/src/index.ts",
+      "frontend/src/app/chat/page.tsx",
+      "backend/core/src/llm/openai-client.ts",
+      "backend/core/src/llm/openai.ts",
+      "backend/core/src/llm/resolve.ts",
+      "backend/core/test/openai.test.ts"
+    ],
+    "outOfScope": []
+  },
+  "edgeCases": [],
+  "constraints": [],
+  "healthMetrics": [],
+  "verification": [],
+  "createdAt": 1790464147,
+  "updatedAt": 1790464175,
+  "rawRequest": "Add DeepSeek as a third LLM provider alongside OpenAI and IBM Bob. Add a model selector in the frontend chat interface so the user can pick which model/provider to use (OpenAI, IBM Bob, or DeepSeek). Validate the API key for the selected model before sending. Use the model 'deepseek-flash' for DeepSeek with its own API key (DEEPSEEK_API_KEY). Wire up the backend to route to the correct provider based on the selected model."
+}

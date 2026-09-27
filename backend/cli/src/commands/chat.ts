@@ -2,9 +2,9 @@ import readline from 'node:readline/promises';
 import chalk from 'chalk';
 import {
   IntentAgent,
-  WatsonxChatModel,
-  WatsonxConfigError,
+  createChatModel,
   loadIntentGuardEnv,
+  type ChatModel,
   type AgentEvent,
   type AgentMetrics,
   type SpecSnapshot,
@@ -15,6 +15,7 @@ import { resolveRepo } from './mcp-setup.js';
 interface ChatOptions {
   repo?: string;
   harness: boolean;
+  provider?: string;
   model?: string;
   listModels?: boolean;
 }
@@ -89,24 +90,22 @@ function render(event: AgentEvent): void {
 }
 
 /**
- * Interactive chat with a watsonx-powered coding agent that works through IntentGuard.
+ * Interactive chat with an AI-powered coding agent (OpenAI by default) that works through IntentGuard.
  */
 export async function chatCommand(options: ChatOptions): Promise<void> {
   loadIntentGuardEnv();
-  if (options.model) process.env.WATSONX_MODEL_ID = options.model;
-
-  let model: WatsonxChatModel;
+  let model: ChatModel;
   try {
-    model = WatsonxChatModel.fromEnv();
+    model = createChatModel({ provider: options.provider, model: options.model });
   } catch (err: any) {
-    console.error(error(err instanceof WatsonxConfigError ? err.message : `Could not start watsonx: ${err.message}`));
+    console.error(error(err.message));
     process.exit(1);
   }
 
   if (options.listModels) {
     try {
-      const models = await model.listToolModels();
-      console.log(models.length ? models.join('\n') : 'No models returned for this region.');
+      const models = typeof (model as any).listToolModels === 'function' ? await (model as any).listToolModels() : [];
+      console.log(models.length ? models.join('\n') : 'No models returned.');
     } catch (err: any) {
       console.error(error(err.message));
       process.exit(1);

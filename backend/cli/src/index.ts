@@ -59,11 +59,12 @@ program
 
 program
   .command('chat')
-  .description('Chat with an IBM watsonx coding agent that works through the intent layer')
+  .description('Chat with an AI coding agent (OpenAI by default) that works through the intent layer')
+  .option('--provider <name>', 'Model provider: openai or watsonx (default: openai when OPENAI_API_KEY is set)')
   .option('--repo <path>', 'Repository to work in (default: current)')
   .option('--no-harness', 'Run the baseline agent without the intent layer, for A/B comparisons')
-  .option('--model <id>', 'watsonx model id (default: WATSONX_MODEL_ID or ibm/granite-4-h-small)')
-  .option('--list-models', 'List watsonx models in your region that support tool calling')
+  .option('--model <id>', 'Model ID (default: OPENAI_MODEL, or gpt-4.1)')
+  .option('--list-models', 'List the chat models your key can use')
   .action(chatCommand);
 
 const mcp = program.command('mcp').description('Manage MCP settings');

@@ -2,7 +2,7 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { serve } from '@hono/node-server';
-import { getRepoRoot, hasWatsonxCredentials, loadIntentGuardEnv } from '@intentguard/core';
+import { getRepoRoot, detectChatProvider, loadIntentGuardEnv } from '@intentguard/core';
 import { createApp, DEFAULT_ALLOWED_ORIGINS } from './app.js';
 
 /** `--repo <path>` wins over INTENT_ROOT; relative paths are taken from where the command was typed. */
@@ -27,9 +27,12 @@ async function main() {
   serve({ fetch: app.fetch, port, hostname: '127.0.0.1' }, info => {
     console.log(`[intentguard-server] API listening on http://localhost:${info.port}/api`);
     console.log(`[intentguard-server] Guarding ${rootDir}`);
-    if (!hasWatsonxCredentials()) {
-      console.log('[intentguard-server] watsonx is not configured: chat is disabled until WATSONX_API_KEY and WATSONX_PROJECT_ID are in .env');
-    }
+    const provider = detectChatProvider();
+    console.log(
+      provider
+        ? `[intentguard-server] Chat agent uses ${provider === 'openai' ? 'OpenAI' : 'IBM watsonx'}`
+        : '[intentguard-server] Chat agent is off: set OPENAI_API_KEY in the IntentGuard .env file'
+    );
   });
 }
 

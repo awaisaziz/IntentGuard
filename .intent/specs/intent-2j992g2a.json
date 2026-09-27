@@ -1,0 +1,211 @@
+{
+  "id": "intent-2j992g2a",
+  "status": "approved",
+  "objective": "The developer has only an OpenAI API key (no Gemini key, no watsonx project), so the built-in chat agent and spec drafting cannot run today. Make OpenAI the model provider for the chat agent (CLI and HTTP API) and for spec drafting, and remove the Gemini API provider code that was added but cannot be used.",
+  "outcomes": [
+    "With only OPENAI_API_KEY set, the CLI chat and POST /api/chat create an OpenAI chat model that posts to {OPENAI_BASE_URL}/chat/completions with a Bearer key and tools in OpenAI format",
+    "resolveProvider returns the OpenAI drafting provider when llmProvider is \"openai\", or \"auto\" with an OpenAI key present",
+    "Zero references to GEMINI_API_KEY, GeminiChatModel or GeminiProvider remain in backend/, .env.example and README.md; gemini-client.ts, gemini.ts and gemini.test.ts are deleted",
+    "With no provider configured, chat fails with a message naming OPENAI_API_KEY and the API answers 503",
+    "pnpm build and pnpm test pass, and pnpm check:pii reports 0 findings"
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "the plan is to use the openai api call for my model instead of gemini or ibm watson just have openai api key and ibm bob for ibm bob i only got the with the team header \"ibm-hackathon-lablab\" lets have this part of the code implemented correctly. remove the gemini api ley part",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: .env.example",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: README.md",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-2",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/cli/src/commands/chat.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-3",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/cli/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-4",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-5",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/provider.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-6",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/watsonx-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-7",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/app.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-8",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-9",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/chat/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-10",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/gemini-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-11",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/gemini.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-12",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/test/gemini.test.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-muizosg3-0",
+      "type": "quote",
+      "excerpt": "use the openai api call for my model instead of gemini or ibm watson; remove the gemini api key part",
+      "source": "developer"
+    },
+    {
+      "id": "ev-muizosg3-1",
+      "type": "observation",
+      "excerpt": "ChatMessage, ChatTool and ChatToolCall are already OpenAI-shaped, so an OpenAI client needs no translation layer",
+      "source": "backend/core/src/llm/chat.ts"
+    },
+    {
+      "id": "ev-muizosg3-2",
+      "type": "observation",
+      "excerpt": "IBM Bob is only an alias of the watsonx client (BOB_API_KEY + BOB_PROJECT_ID); there is no Bob model endpoint or team header in the code",
+      "source": "backend/core/src/llm/watsonx-client.ts"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "backend/core/src/llm/**",
+      "backend/core/src/index.ts",
+      "backend/core/test/openai.test.ts",
+      "backend/core/test/gemini.test.ts",
+      "backend/cli/src/commands/chat.ts",
+      "backend/cli/src/commands/connect.ts",
+      "backend/cli/src/index.ts",
+      "backend/server/src/app.ts",
+      "backend/server/src/index.ts",
+      "backend/server/test/chat.test.ts",
+      ".env.example",
+      "README.md",
+      "SECURITY.md",
+      "CHANGELOG.md",
+      "CONTRIBUTING.md"
+    ],
+    "outOfScope": [
+      "backend/core/src/agents/**",
+      "backend/core/src/agent/**",
+      "backend/core/src/privacy/**",
+      "mcp/**",
+      "frontend/**",
+      "scripts/**",
+      ".github/**"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "OPENAI_API_KEY is missing or still the your-... placeholder from .env.example",
+      "expectedBehavior": "Treated as unset; OpenAIConfigError names OPENAI_API_KEY"
+    },
+    {
+      "scenario": "OpenAI returns a non-2xx response such as 401 or 429",
+      "expectedBehavior": "An error carrying the status and the API's error message, without the key"
+    },
+    {
+      "scenario": "The chosen model is a reasoning model (gpt-5 or o-series) that rejects temperature and max_tokens",
+      "expectedBehavior": "The client sends max_completion_tokens and omits temperature for those models"
+    },
+    {
+      "scenario": "Both OpenAI and watsonx credentials are set with llmProvider auto",
+      "expectedBehavior": "OpenAI is used; an explicit provider choice still wins"
+    }
+  ],
+  "constraints": [
+    "No new npm dependencies: call the OpenAI REST API with fetch, like the existing clients",
+    "The Gemini CLI coding-agent integration (MCP config, GEMINI.md) is a different feature and must stay",
+    "Keep the watsonx client as an optional provider; do not invent an IBM Bob model API or send a team header to an endpoint that is not documented",
+    "API keys come only from the environment and never appear in logs, specs, or committed files"
+  ],
+  "healthMetrics": [
+    "All existing core, server and MCP tests keep passing",
+    "watsonx client behaviour and its tests are unchanged",
+    "PII and secret scan stays clean"
+  ],
+  "verification": [
+    "New backend/core/test/openai.test.ts covers config from env, request format, tool calls, reasoning-model parameters, error messages and provider resolution with a fake fetch",
+    "pnpm build, pnpm test, pnpm check:pii",
+    "grep for gemini-client, GeminiChatModel and GEMINI_API_KEY returns nothing in backend/, .env.example, README.md"
+  ],
+  "createdAt": 1790463370,
+  "updatedAt": 1790463414,
+  "rawRequest": "the plan is to use the openai api call for my model instead of gemini or ibm watson just have openai api key and ibm bob for ibm bob i only got the with the team header \"ibm-hackathon-lablab\" lets have this part of the code implemented correctly. remove the gemini api ley part",
+  "userGoal": "Set OPENAI_API_KEY in the IntentGuard .env and have `pnpm chat`, the /chat API, and spec drafting work against OpenAI.",
+  "readinessScore": 100
+}

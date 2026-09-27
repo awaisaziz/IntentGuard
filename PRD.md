@@ -51,7 +51,7 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 |---|---|---|
 | C-1 | Eight-part IntentSpec schema with validation | Done |
 | C-2 | Spec store under `.intent/` (specs, reports, active spec, config) | Done |
-| C-3 | Draft a spec from a raw request using watsonx, Ollama, or a rule-based fallback | Done |
+| C-3 | Draft a spec from a raw request using OpenAI, watsonx, Ollama, or a rule-based fallback | Done |
 | C-4 | Six-gate readiness scorer with configurable threshold | Done |
 | C-5 | Open-question generator for missing sections | Done |
 | C-6 | Glob-based scope fence (`outOfScope` wins over `inScope`) | Done |
@@ -109,6 +109,7 @@ IntentGuard is not another coding assistant. It plugs into the agents developers
 
 | ID | Requirement | Status |
 |---|---|---|
+| H-0 | OpenAI chat client (Chat Completions, tool calling, default `gpt-4.1`) as the default provider, chosen by one shared resolver | Done |
 | H-1 | watsonx chat client with IAM auth and tool calling (default `ibm/granite-4-h-small`), recovering Granite's inline tool calls | Done |
 | H-2 | Coding agent loop with repo tools (list, search, read, edit, write, run configured checks) and intent tools | Done |
 | H-3 | Harness: edits need an active spec, readiness ≥ threshold, developer approval (no model tool can approve), and an in-scope path; changing the spec resets approval | Done |

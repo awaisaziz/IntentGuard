@@ -53,6 +53,12 @@ All notable changes to IntentGuard are recorded here. The format follows
 
 ### Changed
 
+- OpenAI is now the default model provider for the chat agent and spec
+  drafting (`OPENAI_API_KEY`, default model `gpt-4.1`). One resolver in core
+  (`createChatModel`) picks the provider for the CLI, the API, and drafting.
+  watsonx stays available with `--provider watsonx`. IBM Bob needs no key: it
+  connects over MCP.
+
 - Generated MCP configs use absolute paths and `INTENT_ROOT`
   (`node <IntentGuard>/mcp/dist/index.js`), because IDE-based agents such as
   Bob do not start MCP servers in the project folder. They are machine-specific

@@ -1,7 +1,9 @@
 import type { IntentSpec, GatheredEvidence, IntentConfig } from '../schema/intentspec.js';
 import { WatsonxProvider } from './watsonx.js';
 import { OllamaProvider } from './ollama.js';
+import { OpenAIProvider } from './openai.js';
 import { hasWatsonxCredentials } from './watsonx-client.js';
+import { hasOpenAICredentials } from './openai-client.js';
 
 export interface LLMProvider {
   name: string;
@@ -20,10 +22,12 @@ class FallbackProvider implements LLMProvider {
   }
 }
 
-/** An explicit `llmProvider` wins; "auto" uses watsonx when credentials are configured. */
-export function resolveProvider(config: IntentConfig): LLMProvider {
+/** An explicit `llmProvider` wins; "auto" checks OpenAI, then watsonx credentials. */
+export function resolveProvider(config: IntentConfig, env: NodeJS.ProcessEnv = process.env): LLMProvider {
+  if (config.llmProvider === 'openai') return new OpenAIProvider();
   if (config.llmProvider === 'watsonx') return new WatsonxProvider();
   if (config.llmProvider === 'ollama') return new OllamaProvider();
-  if (hasWatsonxCredentials()) return new WatsonxProvider();
+  if (hasOpenAICredentials(env)) return new OpenAIProvider();
+  if (hasWatsonxCredentials(env)) return new WatsonxProvider();
   return new FallbackProvider();
 }

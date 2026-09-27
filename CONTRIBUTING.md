@@ -64,8 +64,8 @@ Commit the spec and its report together with the code.
   are generated per machine by `pnpm agents:setup` / `pnpm connect`.
 - Do not change `frontend/` unless the task is explicitly about the dashboard
   (the chat page is the only live part).
-- Configuration comes from environment variables (`WATSONX_API_KEY`,
-  `WATSONX_PROJECT_ID`, `INTENT_ROOT`, `INTENTGUARD_API_PORT`), never from
+- Configuration comes from environment variables (`OPENAI_API_KEY`,
+  `OPENAI_MODEL`, `INTENT_ROOT`, `INTENTGUARD_API_PORT`), never from
   committed files.
 
 ## Privacy and secrets

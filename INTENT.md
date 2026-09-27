@@ -98,7 +98,7 @@ Current limitations, which the proof report should not hide:
 
 ## The Chat Agent Harness
 
-`intent chat` and the dashboard's `/chat` page run a watsonx coding agent whose only access to the repository is through IntentGuard's tools. The lifecycle above is enforced in code, not left to the prompt. Every `edit_file` / `write_file` passes this fence, in order:
+`intent chat` and the dashboard's `/chat` page run a coding agent (OpenAI by default) whose only access to the repository is through IntentGuard's tools. The lifecycle above is enforced in code, not left to the prompt. Every `edit_file` / `write_file` passes this fence, in order:
 
 1. **An active spec exists**, otherwise `BLOCKED (no-spec)`.
 2. **Readiness ≥ threshold**, otherwise `BLOCKED (not-ready)` with the failing gates.

@@ -1,0 +1,303 @@
+{
+  "id": "intent-mvao1vs2",
+  "status": "approved",
+  "objective": "A developer who clones or pulls IntentGuard cannot easily tell which commands to run, and in which folder, to connect the IntentGuard MCP server to another repository. The README spreads this across several sections and never shows how to run `intent` from inside the target repo. If nothing changes, users keep running commands in the wrong folder, skip the build, or end up with MCP configs that don't work.",
+  "outcomes": [
+    "README 'Connect Any Repository' states plainly that `pnpm connect` runs from the IntentGuard root folder and takes the path to the other repo, and shows a concrete example: a full path in quotes, plus the relative `../my-app` form with an explanation of `..`.",
+    "The README documents the easier way from inside the target repo: one-time setup (`pnpm setup`, new terminal, `pnpm link --global` in IntentGuard/backend/cli), then `intent connect` with no path. It also shows the fallback that needs no global setup: `node <IntentGuard>/backend/cli/dist/index.js connect`.",
+    "The README says how to tell that connect worked (the 'IntentGuard connected: <path>' line) and what the common errors mean (not a git repo, wrong path, not built).",
+    "The README covers updating after `git pull` (pnpm install + pnpm build; re-run connect only when the IntentGuard folder moves or new agents are added)."
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "ensure we have the right information which commands to run where user can simply pull this and create that mcp connection in the readme file ensure we have that information",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: .env.example",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/cli/src/commands/chat.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-2",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/cli/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-3",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-4",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/provider.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-5",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/watsonx-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-6",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/app.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-7",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-8",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/chat/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-9",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/gemini-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-10",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/src/llm/gemini.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-11",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/core/test/gemini.test.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-[card number redacted]",
+      "type": "observation",
+      "excerpt": "Gathered evidence: .env.example",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-1",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/cli/src/commands/chat.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-2",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/cli/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-3",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-4",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/llm/provider.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-5",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/llm/watsonx-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-6",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/server/src/app.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-7",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/server/src/index.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-8",
+      "type": "observation",
+      "excerpt": "Gathered evidence: frontend/src/app/chat/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-9",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/llm/gemini-client.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-10",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/src/llm/gemini.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-gather-1790459307849-11",
+      "type": "observation",
+      "excerpt": "Gathered evidence: backend/core/test/gemini.test.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-muixf5mg-0",
+      "type": "quote",
+      "excerpt": "Document per-repo `pnpm connect` and the global `intent` command; README.md only; verify by docs review only.",
+      "source": "developer answer"
+    },
+    {
+      "id": "ev-muixf5mg-1",
+      "type": "observation",
+      "excerpt": "bin: { intent: ./dist/index.js }, and dist/index.js starts with a node shebang",
+      "source": "backend/cli/package.json"
+    },
+    {
+      "id": "ev-muixf5mg-2",
+      "type": "observation",
+      "excerpt": "resolveRepo uses INIT_CWD || cwd, so relative paths resolve from where the command was typed",
+      "source": "backend/cli/src/commands/mcp-setup.ts"
+    },
+    {
+      "id": "ev-muixf5mg-3",
+      "type": "observation",
+      "excerpt": "The CLI table lists connect agents without antigravity, and the 'Test It in Each Agent' table has no Cursor row",
+      "source": "README.md"
+    },
+    {
+      "id": "ev-muixoz64-0",
+      "type": "quote",
+      "excerpt": "from the intent guard root folder we have to run the pnpm connect and full path to the other repo; is there a way to make this easy when we are already in that repo; ensure we have that in the readme with explanation how to setup",
+      "source": "developer"
+    },
+    {
+      "id": "ev-muixoz64-1",
+      "type": "observation",
+      "excerpt": "resolveRepo(undefined) uses INIT_CWD || process.cwd(), so `intent connect` with no path connects the folder it is run in",
+      "source": "backend/cli/src/commands/mcp-setup.ts"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "README.md"
+    ],
+    "outOfScope": [
+      "backend/**",
+      "mcp/**",
+      "frontend/**",
+      "CONTRIBUTING.md",
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md",
+      "package.json",
+      ".env.example"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "The user has never configured a pnpm global bin directory",
+      "expectedBehavior": "The README tells them to run `pnpm setup` once and open a new terminal before `pnpm link --global`."
+    },
+    {
+      "scenario": "The user runs connect before building",
+      "expectedBehavior": "The README puts `pnpm build` before connect and says connect fails with 'MCP server is not built' otherwise."
+    },
+    {
+      "scenario": "The user moves or renames the IntentGuard folder",
+      "expectedBehavior": "The README says to re-run connect in every connected repo, because the configs store absolute paths."
+    },
+    {
+      "scenario": "The user passes a relative path to `pnpm connect`",
+      "expectedBehavior": "The README states it resolves from the folder where the command was typed (INIT_CWD)."
+    }
+  ],
+  "constraints": [
+    "Documentation only: no source, script or config changes.",
+    "No absolute local paths, emails or personal data in README (the PII tripwire must pass).",
+    "Keep the existing README sections that aren't about setup or connecting unchanged."
+  ],
+  "healthMetrics": [
+    "pnpm check:pii passes",
+    "No other files in the diff are attributed to this spec",
+    "Existing README anchors that other docs link to (#connect-any-repository) still resolve"
+  ],
+  "verification": [
+    "Build the CLI, create a throwaway git repo in the session scratchpad, run `node <IntentGuard>/backend/cli/dist/index.js connect --agent claude` from inside it, and confirm it prints 'IntentGuard connected' with that repo's path and writes .intent/config.json, .mcp.json and CLAUDE.md there.",
+    "From the IntentGuard root, run `pnpm connect \"<scratch repo full path>\" --agent claude` and confirm the same result.",
+    "Run `node scripts/check-pii.mjs --all`: README.md must be clean."
+  ],
+  "createdAt": 1790459299,
+  "updatedAt": 1790460071,
+  "rawRequest": "ensure we have the right information which commands to run where user can simply pull this and create that mcp connection in the readme file ensure we have that information",
+  "userGoal": "Pull IntentGuard, then connect its MCP server to any local repository by following one short, correct README section.",
+  "readinessScore": 100
+}

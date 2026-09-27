@@ -1,0 +1,64 @@
+{
+  "specId": "intent-2j992g2a",
+  "timestamp": 1790463609,
+  "verification": {
+    "passed": false,
+    "scopeViolations": [
+      "INTENT.md",
+      "PRD.md",
+      "frontend/src/app/chat/page.tsx"
+    ],
+    "outcomesChecked": [
+      {
+        "outcome": "With only OPENAI_API_KEY set, the CLI chat and POST /api/chat create an OpenAI chat model that posts to {OPENAI_BASE_URL}/chat/completions with a Bearer key and tools in OpenAI format",
+        "status": "pass",
+        "testFile": "backend/core/test/openai.test.ts"
+      },
+      {
+        "outcome": "resolveProvider returns the OpenAI drafting provider when llmProvider is \"openai\", or \"auto\" with an OpenAI key present",
+        "status": "pass",
+        "testFile": "backend/core/test/openai.test.ts"
+      },
+      {
+        "outcome": "Zero references to GEMINI_API_KEY, GeminiChatModel or GeminiProvider remain in backend/, .env.example and README.md; gemini-client.ts, gemini.ts and gemini.test.ts are deleted",
+        "status": "pass",
+        "testFile": "backend/core/test/openai.test.ts"
+      },
+      {
+        "outcome": "With no provider configured, chat fails with a message naming OPENAI_API_KEY and the API answers 503",
+        "status": "pass",
+        "testFile": "backend/core/test/openai.test.ts"
+      },
+      {
+        "outcome": "pnpm build and pnpm test pass, and pnpm check:pii reports 0 findings",
+        "status": "pass",
+        "testFile": "backend/core/test/openai.test.ts"
+      }
+    ],
+    "healthMetricsChecked": [
+      {
+        "metric": "All existing core, server and MCP tests keep passing",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "watsonx client behaviour and its tests are unchanged",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "PII and secret scan stays clean",
+        "status": "unknown",
+        "details": "Manual review required"
+      }
+    ],
+    "testsRun": [
+      {
+        "file": "backend/core/test/openai.test.ts",
+        "passed": true
+      }
+    ]
+  },
+  "summary": "Verification failed. Review scope violations and untested outcomes.",
+  "commitReady": false
+}

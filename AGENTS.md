@@ -19,7 +19,7 @@ IntentGuard runs locally only: nothing is published to npm or deployed.
 | `frontend/` | Next.js dashboard, `@intentguard/web`; only `/chat` talks to the backend |
 | `backend/core` | All domain logic: IntentSpec schema, readiness gates, scope fence, verifier, spec store, privacy redactor, LLM providers, agent registry, `connect` workflow |
 | `backend/core/src/agent` | The chat agent: tool loop, fenced workspace, harness (spec → readiness → developer approval → scope) |
-| `backend/core/src/llm` | watsonx chat client (IAM auth, tool calling) and spec-drafting providers |
+| `backend/core/src/llm` | Chat clients (OpenAI by default, watsonx optional), provider selection (`resolve.ts`), and spec-drafting providers |
 | `backend/server` | HTTP API (Hono) over `core`, including the streaming chat endpoints, default port `3848` |
 | `backend/cli` | The `intent` command (`connect`, `chat`, `check`, `verify`, ...) |
 | `mcp/` | MCP stdio server exposing the 8 `intent_*` tools, `@intentguard/mcp-server` |
@@ -37,7 +37,7 @@ pnpm test             # vitest for core and server
 pnpm dev:server       # run the API with reload on http://localhost:3848/api (--repo <path> to guard another repo)
 pnpm agents:setup     # regenerate agent MCP configs and rule blocks for this repo
 pnpm connect <path>   # connect another local repository
-pnpm chat             # watsonx chat agent in the terminal (--repo, --no-harness)
+pnpm chat             # chat agent in the terminal, OpenAI by default (--repo, --no-harness)
 pnpm check:pii        # scan every tracked file for PII, secrets, and forbidden files
 ```
 
@@ -48,7 +48,7 @@ pnpm check:pii        # scan every tracked file for PII, secrets, and forbidden 
 - Add or update Vitest tests next to the package you change (`backend/<pkg>/test`).
 - Agent integrations are defined once in `backend/core/src/agents/`. Never hand-edit `.mcp.json`, `.cursor/`, `.codex/`, `.bob/`, `.gemini/`, or `.agents/mcp_config.json`: they are generated, machine-specific, and git-ignored.
 - The chat agent's guarantees live in code, not prompts: path confinement and secret refusal in `agent/workspace.ts`, the edit fence in `agent/tools.ts`. Keep them covered by `backend/core/test/agent.test.ts`.
-- Never commit secrets, absolute local paths, or personal data. Configuration comes from environment variables (`WATSONX_API_KEY`, `INTENT_ROOT`, `INTENTGUARD_API_PORT`). The pre-commit hook and CI run `scripts/check-pii.mjs`; fix a finding rather than bypassing it, and mark a genuine false positive with `pii:allow` on that line.
+- Never commit secrets, absolute local paths, or personal data. Configuration comes from environment variables (`OPENAI_API_KEY`, `INTENT_ROOT`, `INTENTGUARD_API_PORT`). The pre-commit hook and CI run `scripts/check-pii.mjs`; fix a finding rather than bypassing it, and mark a genuine false positive with `pii:allow` on that line.
 - Specs and proof reports are redacted on save by `backend/core/src/privacy/`. Write evidence that cites a ticket ID or file rather than a person's contact details.
 
 <!-- intentguard:start (managed by `intent connect`, edits inside are overwritten) -->

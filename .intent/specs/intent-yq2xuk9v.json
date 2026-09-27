@@ -1,0 +1,96 @@
+{
+  "id": "intent-yq2xuk9v",
+  "status": "approved",
+  "objective": "Enable multi-provider LLM support for IntentGuard, configuring Google Gemini API calls (defaulting to gemini-2.5-pro for coding tasks) alongside IBM Bob / watsonx API calls for the frontend chat bot, spec drafting, and CLI commands without hardcoded keys.",
+  "outcomes": [
+    "GeminiChatModel is implemented and executes chat and tool calling via direct Gemini API calls using GEMINI_API_KEY.",
+    "Default coding model is set to gemini-2.5-pro, with configurable GEMINI_MODEL environment variable.",
+    "GeminiProvider is implemented for IntentSpec drafting and wired into resolveProvider.",
+    "IBM Bob / watsonx API client remains fully supported and functional via BOB_API_KEY or WATSONX_API_KEY.",
+    "Server, CLI, and MCP automatically resolve Gemini or Bob/watsonx based on available environment credentials.",
+    "Unit tests for GeminiChatModel, GeminiProvider, and multi-provider resolution pass."
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "I cannot have watsonxai as i donot have the api configured so lets configure the gemini model api via api call for this task also put in the model name that is good for coding task and i will put the api myself later so lets repurpose the code",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-muiuu4f2-0",
+      "type": "request",
+      "excerpt": "I cannot have watsonxai as i donot have the api configured so lets configure the gemini model api via api call for this task also put in the model name that is good for coding task and i will put the api myself later so lets repurpose the code",
+      "source": "User request 1"
+    },
+    {
+      "id": "ev-muiuu4f2-1",
+      "type": "request",
+      "excerpt": "beside the gemini also add the ibm bob via api call that should work as well",
+      "source": "User request 2"
+    },
+    {
+      "id": "ev-muiuu4f2-2",
+      "type": "observation",
+      "excerpt": "Current chat client defaults strictly to WatsonxChatModel.fromEnv() which throws when WATSONX_API_KEY and WATSONX_PROJECT_ID are unset.",
+      "source": "backend/core/src/llm/watsonx-client.ts"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "backend/core/src/llm/**",
+      "backend/core/src/index.ts",
+      "backend/core/src/privacy/patterns.ts",
+      "backend/core/test/**",
+      "backend/server/src/**",
+      "backend/cli/src/**",
+      "frontend/src/app/chat/**",
+      ".env.example",
+      "scripts/check-pii.mjs"
+    ],
+    "outOfScope": [
+      "frontend/src/app/specs/**",
+      "frontend/src/app/settings/**",
+      "backend/core/src/readiness/**",
+      "backend/core/src/scope/**",
+      "backend/core/src/verify/**",
+      "backend/core/src/store/**"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "Neither GEMINI_API_KEY nor WATSONX_API_KEY / BOB_API_KEY is configured in the environment",
+      "expectedBehavior": "Show a clear, actionable error message prompting the developer to set GEMINI_API_KEY or WATSONX_API_KEY in .env"
+    },
+    {
+      "scenario": "Gemini or Bob/watsonx API call returns an authentication or quota error",
+      "expectedBehavior": "Catch and surface HTTP error message cleanly without leaking the API key in error text or logs"
+    },
+    {
+      "scenario": "Model generates structured tool calls",
+      "expectedBehavior": "Convert functionCalls / tool_calls into standard ChatToolCall objects so agent harness executes tools properly"
+    }
+  ],
+  "constraints": [
+    "Direct API calls via standard fetch (no external SDK dependencies needed)",
+    "No secrets committed to codebase; keys must be loaded from environment variables (GEMINI_API_KEY, WATSONX_API_KEY, BOB_API_KEY)",
+    "Backward compatibility with existing watsonx and Ollama providers preserved",
+    "Zero PII or secret leaks verified by check-pii"
+  ],
+  "healthMetrics": [
+    "All existing vitest tests across core, server, and mcp continue to pass",
+    "check:pii scanner passes with 0 findings"
+  ],
+  "verification": [
+    "Run pnpm test to verify all core, server, and mcp test suites pass including new Gemini and Bob tests",
+    "Run pnpm check:pii to confirm zero privacy/secret leaks",
+    "Run pnpm build to ensure clean TypeScript compilation across all packages"
+  ],
+  "createdAt": 1790455205,
+  "updatedAt": 1790455618,
+  "rawRequest": "I cannot have watsonxai as i donot have the api configured so lets configure the gemini model api via api call for this task also put in the model name that is good for coding task and i will put the api myself later so lets repurpose the code",
+  "userGoal": "Run IntentGuard with Google Gemini or IBM Bob via direct API calls by supplying API keys in .env, without being blocked by lack of watsonx credentials.",
+  "readinessScore": 100
+}

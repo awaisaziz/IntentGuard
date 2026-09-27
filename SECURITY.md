@@ -33,7 +33,8 @@ configure an LLM provider.
   in connected repositories. Rule files (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`,
   `.bob/rules/`) contain no paths or personal data.
 - The chat agent sends your request, the repository files it reads, and tool
-  output (such as test results) to IBM watsonx, which is the model it runs on.
+  output (such as test results) to the configured model provider: OpenAI by
+  default, or IBM watsonx when selected.
   It cannot read `.env` files, private keys, or anything outside the
   repository, and it can only run the checks listed in `.intent/config.json`.
 - The pre-commit hook and CI run `scripts/check-pii.mjs`, which refuses env

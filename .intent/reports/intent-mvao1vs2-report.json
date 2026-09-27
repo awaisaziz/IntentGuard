@@ -1,0 +1,68 @@
+{
+  "specId": "intent-mvao1vs2",
+  "timestamp": 1790460128,
+  "verification": {
+    "passed": false,
+    "scopeViolations": [
+      ".env.example",
+      "backend/cli/src/commands/chat.ts",
+      "backend/cli/src/index.ts",
+      "backend/core/src/index.ts",
+      "backend/core/src/llm/provider.ts",
+      "backend/core/src/llm/watsonx-client.ts",
+      "backend/server/src/app.ts",
+      "backend/server/src/index.ts",
+      "frontend/src/app/chat/page.tsx",
+      "backend/core/src/llm/gemini-client.ts",
+      "backend/core/src/llm/gemini.ts",
+      "backend/core/test/gemini.test.ts"
+    ],
+    "outcomesChecked": [
+      {
+        "outcome": "README 'Connect Any Repository' states plainly that `pnpm connect` runs from the IntentGuard root folder and takes the path to the other repo, and shows a concrete example: a full path in quotes, plus the relative `../my-app` form with an explanation of `..`.",
+        "status": "pass",
+        "testFile": "backend/core/test/gemini.test.ts"
+      },
+      {
+        "outcome": "The README documents the easier way from inside the target repo: one-time setup (`pnpm setup`, new terminal, `pnpm link --global` in IntentGuard/backend/cli), then `intent connect` with no path. It also shows the fallback that needs no global setup: `node <IntentGuard>/backend/cli/dist/index.js connect`.",
+        "status": "pass",
+        "testFile": "backend/core/test/gemini.test.ts"
+      },
+      {
+        "outcome": "The README says how to tell that connect worked (the 'IntentGuard connected: <path>' line) and what the common errors mean (not a git repo, wrong path, not built).",
+        "status": "pass",
+        "testFile": "backend/core/test/gemini.test.ts"
+      },
+      {
+        "outcome": "The README covers updating after `git pull` (pnpm install + pnpm build; re-run connect only when the IntentGuard folder moves or new agents are added).",
+        "status": "pass",
+        "testFile": "backend/core/test/gemini.test.ts"
+      }
+    ],
+    "healthMetricsChecked": [
+      {
+        "metric": "pnpm check:pii passes",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "No other files in the diff are attributed to this spec",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "Existing README anchors that other docs link to (#connect-any-repository) still resolve",
+        "status": "unknown",
+        "details": "Manual review required"
+      }
+    ],
+    "testsRun": [
+      {
+        "file": "backend/core/test/gemini.test.ts",
+        "passed": true
+      }
+    ]
+  },
+  "summary": "Verification failed. Review scope violations and untested outcomes.",
+  "commitReady": false
+}

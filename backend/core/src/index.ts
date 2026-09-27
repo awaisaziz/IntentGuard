@@ -25,6 +25,10 @@ export * from './llm/templates.js';
 
 export * from './llm/chat.js';
 export * from './llm/watsonx-client.js';
+export * from './llm/openai-client.js';
+export * from './llm/openai.js';
+export * from './llm/deepseek-client.js';
+export * from './llm/resolve.js';
 
 export * from './workflow/draft.js';
 export * from './workflow/checks.js';
