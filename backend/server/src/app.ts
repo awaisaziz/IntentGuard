@@ -11,6 +11,7 @@ import {
   verify,
   generateProofReport,
   draftSpec,
+  updateSpec,
   getAgentStatuses,
   IntentAgent,
   WatsonxChatModel,
@@ -50,11 +51,11 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
     if (!LOCAL_HOSTS.has(new URL(c.req.url).hostname)) return c.json({ error: 'Forbidden host' }, 403);
     await next();
   });
-  app.use('*', cors({ origin: allowedOrigins, allowMethods: ['GET', 'POST', 'OPTIONS'], allowHeaders: ['Content-Type'] }));
+  app.use('*', cors({ origin: allowedOrigins, allowMethods: ['GET', 'POST', 'PATCH', 'OPTIONS'], allowHeaders: ['Content-Type'] }));
   app.use('*', async (c, next) => {
     const origin = c.req.header('origin');
     if (origin && !allowedOrigins.includes(origin)) return c.json({ error: 'Forbidden origin' }, 403);
-    if (c.req.method === 'POST' && !(c.req.header('content-type') ?? '').includes('application/json')) {
+    if (['POST', 'PATCH'].includes(c.req.method) && !(c.req.header('content-type') ?? '').includes('application/json')) {
       return c.json({ error: 'Content-Type must be application/json' }, 415);
     }
     await next();
@@ -130,6 +131,22 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
 
   app.get('/specs/:id/questions', async c => {
     return c.json(generateQuestions(await loadSpec(c.req.param('id'))));
+  });
+
+  app.patch('/specs/:id', async c => {
+    const id = c.req.param('id');
+    await loadSpec(id); // validates existence + id format
+    const body = await readJson<Record<string, unknown>>(c.req);
+    try {
+      const result = await updateSpec(rootDir, body, id);
+      const { readinessThreshold } = await loadConfig(rootDir);
+      return c.json({
+        ...result.spec,
+        readinessScore: computeReadiness(result.spec, readinessThreshold).score,
+      });
+    } catch (err) {
+      throw new HTTPException(400, { message: err instanceof Error ? err.message : String(err) });
+    }
   });
 
   app.post('/specs/:id/scope-check', async c => {

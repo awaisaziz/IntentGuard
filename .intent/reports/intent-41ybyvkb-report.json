@@ -1,0 +1,51 @@
+{
+  "specId": "intent-41ybyvkb",
+  "timestamp": 1790505058,
+  "verification": {
+    "passed": false,
+    "scopeViolations": [
+      "bob_sessions/tahreem_task02_cli_error_handling.png"
+    ],
+    "outcomesChecked": [
+      {
+        "outcome": "getAllSpecs() reads all .json files from .intent/specs/, parses them as IntentSpec, and returns them sorted by createdAt descending",
+        "status": "untested"
+      },
+      {
+        "outcome": "getSpecById(id) reads .intent/specs/<id>.json and returns the parsed spec, or null if not found",
+        "status": "untested"
+      },
+      {
+        "outcome": "getActiveSpec() reads .intent/active.json then loads the referenced spec, or returns null",
+        "status": "untested"
+      },
+      {
+        "outcome": "The Spec interface in api.ts aligns with the real IntentSpec shape (evidence uses the correct Evidence type with excerpt/type/source fields)",
+        "status": "untested"
+      },
+      {
+        "outcome": "The /specs page displays the 4 real specs from .intent/specs/ with correct objective, outcomes, and status",
+        "status": "untested"
+      },
+      {
+        "outcome": "No existing page design, component, or route changes",
+        "status": "untested"
+      }
+    ],
+    "healthMetricsChecked": [
+      {
+        "metric": "Next.js build (pnpm --filter @intentguard/web build) exits 0",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "No TypeScript errors introduced",
+        "status": "unknown",
+        "details": "Manual review required"
+      }
+    ],
+    "testsRun": []
+  },
+  "summary": "Verification failed. Review scope violations and untested outcomes.",
+  "commitReady": false
+}

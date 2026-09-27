@@ -1,15 +1,42 @@
-import { getProofReport, getSpecById } from '@/lib/api';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { getSpecById, getProofReport, type Spec } from '@/lib/api';
 import ProofReportView from '@/components/proof-report-view';
 import Link from 'next/link';
-import { ArrowLeft, Activity } from 'lucide-react';
-import { notFound } from 'next/navigation';
+import { ArrowLeft, Activity, Loader2 } from 'lucide-react';
+import { use } from 'react';
 
-export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const spec = await getSpecById(id);
-  const report = await getProofReport(id);
+export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [spec, setSpec] = useState<Spec | null>(null);
+  const [report, setReport] = useState<unknown>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!spec || !report) notFound();
+  useEffect(() => {
+    Promise.all([getSpecById(id), getProofReport(id)])
+      .then(([s, r]) => { setSpec(s); setReport(r); })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-slate-500">
+        <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading…
+      </div>
+    );
+  }
+
+  if (!spec) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-4">
+        <Link href="/specs" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Specs
+        </Link>
+        <p className="text-slate-500">Spec not found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -25,7 +52,13 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <p className="text-slate-500 mt-2 font-mono text-sm">{spec.id}</p>
       </div>
 
-      <ProofReportView report={report} />
+      {report ? (
+        <ProofReportView report={report} />
+      ) : (
+        <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-500">
+          No proof report exists yet for this spec. Run <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded">intent verify</code> or trigger verification from the chat agent to generate one.
+        </div>
+      )}
     </div>
   );
 }

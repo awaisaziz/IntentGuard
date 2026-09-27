@@ -1,0 +1,182 @@
+{
+  "id": "intent-godkzdjg",
+  "status": "draft",
+  "objective": "it will add authentication",
+  "outcomes": [
+    "to have a login page before houng to othe rpage"
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "add login page",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: backend/server/src/app.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/next.config.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-2",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-3",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/settings/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-4",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/[id]/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-5",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/[id]/readiness/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-6",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/[id]/report/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-7",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-8",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/components/chat/transcript.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-9",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/components/gate-checklist.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-10",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/components/proof-report-view.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-11",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/lib/api.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-12",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/add spec added in frontend.png",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-13",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/frontend error resolved.png",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-14",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/tahreem_task02_cli_error_handling.png",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-15",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/task 03_spec page dynamic.png",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-16",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/task 8.png",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-17",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/testing frontend.png",
+      "anchors": [
+        "objective"
+      ]
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "all"
+    ],
+    "outOfScope": []
+  },
+  "edgeCases": [
+    {
+      "scenario": "missing data",
+      "expectedBehavior": "TBD"
+    }
+  ],
+  "constraints": [],
+  "healthMetrics": [],
+  "verification": [
+    "so"
+  ],
+  "createdAt": 1790509943,
+  "updatedAt": 1790510002,
+  "rawRequest": "add login page"
+}

@@ -1,0 +1,118 @@
+{
+  "id": "intent-65uydoer",
+  "status": "draft",
+  "objective": "hi",
+  "outcomes": [],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "hi",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/next.config.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/[id]/readiness/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-2",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/[id]/report/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-3",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-4",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/components/gate-checklist.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-5",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/components/proof-report-view.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-6",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/lib/api.ts",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-7",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/frontend error resolved.png",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-8",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/tahreem_task02_cli_error_handling.png",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-9",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: bob_sessions/task 03_spec page dynamic.png",
+      "anchors": [
+        "objective"
+      ]
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "frontend/next.config.ts",
+      "frontend/src/app/specs/[id]/readiness/page.tsx",
+      "frontend/src/app/specs/[id]/report/page.tsx",
+      "frontend/src/app/specs/page.tsx",
+      "frontend/src/components/gate-checklist.tsx",
+      "frontend/src/components/proof-report-view.tsx",
+      "frontend/src/lib/api.ts",
+      "bob_sessions/frontend error resolved.png",
+      "bob_sessions/tahreem_task02_cli_error_handling.png",
+      "bob_sessions/task 03_spec page dynamic.png"
+    ],
+    "outOfScope": []
+  },
+  "edgeCases": [],
+  "constraints": [],
+  "healthMetrics": [],
+  "verification": [],
+  "createdAt": 1790507445,
+  "updatedAt": 1790507445,
+  "rawRequest": "hi"
+}

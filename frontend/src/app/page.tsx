@@ -17,7 +17,13 @@ export default async function HomePage() {
       </section>
 
       <section>
-        <IntentFlow currentStep={2} />
+        <IntentFlow currentStep={
+          !activeSpec ? 1 :
+          activeSpec.status === 'verified' ? 5 :
+          activeSpec.status === 'shipped' ? 4 :
+          activeSpec.status === 'approved' ? 3 :
+          2
+        } />
       </section>
 
       <section className="grid md:grid-cols-3 gap-6">
@@ -58,9 +64,13 @@ export default async function HomePage() {
 
         <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center">
           <h2 className="text-lg font-bold mb-6 w-full text-left">Readiness Score</h2>
-          <ReadinessGauge score={activeSpec ? 85 : 0} size="lg" />
+          <ReadinessGauge score={activeSpec?.readinessScore ?? 0} size="lg" />
           <p className="mt-6 text-sm text-slate-500 text-center">
-            {activeSpec ? "Code is closely aligned with intent." : "Create a spec to see readiness."}
+            {activeSpec
+              ? activeSpec.readinessScore && activeSpec.readinessScore >= 70
+                ? 'Spec is ready to implement.'
+                : 'Spec needs more detail before coding.'
+              : 'Create a spec to see readiness.'}
           </p>
         </div>
       </section>

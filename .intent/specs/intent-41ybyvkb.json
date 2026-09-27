@@ -1,0 +1,108 @@
+{
+  "id": "intent-41ybyvkb",
+  "status": "approved",
+  "objective": "Replace the hardcoded mock spec data in `frontend/src/lib/api.ts` with real reads from the `.intent/specs/` directory on disk, so the /specs page (and detail pages) show actual IntentSpec data. The existing page layout, components, and routes must remain unchanged.",
+  "outcomes": [
+    "getAllSpecs() reads all .json files from .intent/specs/, parses them as IntentSpec, and returns them sorted by createdAt descending",
+    "getSpecById(id) reads .intent/specs/<id>.json and returns the parsed spec, or null if not found",
+    "getActiveSpec() reads .intent/active.json then loads the referenced spec, or returns null",
+    "The Spec interface in api.ts aligns with the real IntentSpec shape (evidence uses the correct Evidence type with excerpt/type/source fields)",
+    "The /specs page displays the 4 real specs from .intent/specs/ with correct objective, outcomes, and status",
+    "No existing page design, component, or route changes"
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "The /specs page currently shows hardcoded mock data (SPEC-101, SPEC-102). Update it to fetch real specs from the .intent/specs folder in this repository instead. Each spec is a JSON file there. Display the real objective, outcomes, and status from these files instead of the mock data, keeping the existing page design and layout.",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-mujoac1g-0",
+      "type": "observation",
+      "excerpt": "getAllSpecs() returns hardcoded mockSpecs array with SPEC-101 and SPEC-102 instead of reading from disk",
+      "source": "frontend/src/lib/api.ts"
+    },
+    {
+      "id": "ev-mujoac1g-1",
+      "type": "observation",
+      "excerpt": "4 real spec JSON files exist: intent-41ybyvkb.json, intent-agvqgxad.json, intent-demo-galaxium.json, intent-vague-request.json",
+      "source": ".intent/specs/"
+    },
+    {
+      "id": "ev-mujoac1g-2",
+      "type": "observation",
+      "excerpt": "@intentguard/core is already a workspace dependency — SpecStore and IntentSpec are importable",
+      "source": "frontend/package.json"
+    },
+    {
+      "id": "ev-mujoac1h-3",
+      "type": "observation",
+      "excerpt": "transpilePackages includes @intentguard/core and serverExternalPackages includes simple-git — core can be used server-side",
+      "source": "frontend/next.config.ts"
+    },
+    {
+      "id": "ev-mujoac1h-4",
+      "type": "observation",
+      "excerpt": "Server's GET /specs uses new SpecStore(rootDir) to list and load all specs, the same pattern we want in api.ts",
+      "source": "backend/server/src/app.ts:86-101"
+    },
+    {
+      "id": "ev-mujoe668-0",
+      "type": "observation",
+      "excerpt": "evidence-panel.tsx references item.description and item.trustTier — field names from the old mock Spec interface. The real IntentSpec uses excerpt and trust. Without updating this component, evidence cells will be blank and TypeScript will emit errors.",
+      "source": "frontend/src/components/evidence-panel.tsx:17,20"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "frontend/src/lib/api.ts",
+      "frontend/src/components/evidence-panel.tsx"
+    ],
+    "outOfScope": [
+      "frontend/src/app/**",
+      "frontend/src/components/**",
+      "backend/**",
+      "mcp/**"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "A .json file in .intent/specs/ is malformed",
+      "expectedBehavior": "That file is silently skipped (Promise settles to null, filtered out) so the page still loads"
+    },
+    {
+      "scenario": "The .intent/specs/ directory does not exist",
+      "expectedBehavior": "getAllSpecs() returns an empty array"
+    },
+    {
+      "scenario": "getSpecById is called with a spec ID that has no matching file",
+      "expectedBehavior": "Returns null; the detail page calls notFound()"
+    },
+    {
+      "scenario": "active.json references a spec ID whose file has been deleted",
+      "expectedBehavior": "getActiveSpec() returns null gracefully"
+    }
+  ],
+  "constraints": [
+    "Use only Node.js built-ins (fs/promises, path) already available in the Next.js server runtime — no new dependencies",
+    "process.cwd() at Next.js server runtime resolves to the frontend/ directory, so paths to .intent/specs must be computed relative to the repo root (one level up) using path.resolve(__dirname, '../../..')",
+    "Keep all existing exported function signatures unchanged",
+    "The Spec interface must remain exported and compatible with how spec-card.tsx and other components consume it"
+  ],
+  "healthMetrics": [
+    "Next.js build (pnpm --filter @intentguard/web build) exits 0",
+    "No TypeScript errors introduced"
+  ],
+  "verification": [
+    "pnpm --filter @intentguard/web build exits 0",
+    "Navigate to /specs in the browser — shows real spec cards from .intent/specs/ (not SPEC-101/SPEC-102)",
+    "Click a spec card — detail page shows real objective, outcomes, scope, and evidence"
+  ],
+  "createdAt": 1790504611,
+  "updatedAt": 1790504912,
+  "rawRequest": "The /specs page currently shows hardcoded mock data (SPEC-101, SPEC-102). Update it to fetch real specs from the .intent/specs folder in this repository instead. Each spec is a JSON file there. Display the real objective, outcomes, and status from these files instead of the mock data, keeping the existing page design and layout.",
+  "readinessScore": 100
+}
