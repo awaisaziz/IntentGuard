@@ -1,0 +1,54 @@
+{
+  "specId": "intent-agvqgxad",
+  "timestamp": 1790503390,
+  "verification": {
+    "passed": false,
+    "scopeViolations": [],
+    "outcomesChecked": [
+      {
+        "outcome": "Every command prints user-facing errors to stderr (console.error) and exits with code 1 on failure — this is already the pattern, but two callsites use console.log for errors instead.",
+        "status": "untested"
+      },
+      {
+        "outcome": "withSpinner shows the error message on spinner.fail() instead of swallowing it silently (currently spinner.fail() shows no text and the raw throw re-surfaces as an unformatted stack if uncaught).",
+        "status": "untested"
+      },
+      {
+        "outcome": "Known user errors (no active spec, spec not found, unknown agent, repo not found, WatsonxConfigError) produce a short, human-readable message with no stack trace.",
+        "status": "untested"
+      },
+      {
+        "outcome": "Unexpected errors (filesystem permission denied, JSON parse failure, network error) include the error class/type so the developer knows it is not a usage mistake.",
+        "status": "untested"
+      },
+      {
+        "outcome": "process.exit(1) is only called at the top-level command boundary, not buried inside shared helpers like selectAgentsOrExit (currently selectAgentsOrExit calls process.exit, making it untestable).",
+        "status": "untested"
+      },
+      {
+        "outcome": "The global unhandled rejection/exception handler in index.ts catches anything that escapes a command and prints it cleanly instead of crashing with a raw Node.js stack trace.",
+        "status": "untested"
+      }
+    ],
+    "healthMetricsChecked": [
+      {
+        "metric": "All existing CLI tests continue to pass.",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "No new runtime dependencies introduced.",
+        "status": "unknown",
+        "details": "Manual review required"
+      },
+      {
+        "metric": "TypeScript compiles without new errors (pnpm build in backend/cli).",
+        "status": "unknown",
+        "details": "Manual review required"
+      }
+    ],
+    "testsRun": []
+  },
+  "summary": "Verification failed. Review scope violations and untested outcomes.",
+  "commitReady": false
+}

@@ -1,5 +1,6 @@
 import { DEFAULT_CONFIG, SpecStore, detectProjectInfo, getRepoRoot, saveConfig } from '@intentguard/core';
 import { success, error } from '../ui/formatters.js';
+import { formatCommandError } from './mcp-setup.js';
 
 /**
  * Initializes IntentGuard in the current project.
@@ -18,8 +19,8 @@ export async function initCommand(): Promise<void> {
     if (projectInfo.projectName) {
       console.log(`Detected project: ${projectInfo.projectName}`);
     }
-  } catch (err: any) {
-    console.error(error(`Failed to initialize IntentGuard: ${err.message}`));
+  } catch (err) {
+    console.error(error(`Failed to initialize IntentGuard: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

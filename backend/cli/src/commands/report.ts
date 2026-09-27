@@ -1,6 +1,7 @@
 import { SpecStore, getRepoRoot, proofReportToMarkdown, verify, generateProofReport } from '@intentguard/core';
 import { error, header } from '../ui/formatters.js';
 import { withSpinner } from '../ui/spinner.js';
+import { formatCommandError } from './mcp-setup.js';
 
 /**
  * Prints the proof report for a spec.
@@ -26,8 +27,8 @@ export async function reportCommand(specId?: string): Promise<void> {
     
     console.log(proofReportToMarkdown(report));
     
-  } catch (err: any) {
-    console.error(error(`Failed to generate report: ${err.message}`));
+  } catch (err) {
+    console.error(error(`Failed to generate report: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

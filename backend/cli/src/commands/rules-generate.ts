@@ -1,6 +1,6 @@
 import { connectRepo, getRepoRoot } from '@intentguard/core';
 import { success, error } from '../ui/formatters.js';
-import { selectAgentsOrExit } from './mcp-setup.js';
+import { selectAgentsOrExit, formatCommandError } from './mcp-setup.js';
 
 interface RulesGenerateOptions {
   agent?: string;
@@ -17,8 +17,8 @@ export async function rulesGenerateCommand(options: RulesGenerateOptions): Promi
     for (const file of result.rules) {
       console.log(success(`Generated rule file: ${file}`));
     }
-  } catch (err: any) {
-    console.error(error(`Rules generation failed: ${err.message}`));
+  } catch (err) {
+    console.error(error(`Rules generation failed: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

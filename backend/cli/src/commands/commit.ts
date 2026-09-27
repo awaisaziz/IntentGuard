@@ -2,6 +2,7 @@ import inquirer from 'inquirer';
 import { SpecStore, getRepoRoot, verify, commitWithSpec } from '@intentguard/core';
 import { withSpinner } from '../ui/spinner.js';
 import { success, error, warning } from '../ui/formatters.js';
+import { formatCommandError } from './mcp-setup.js';
 
 /**
  * Commits current changes using the specified spec.
@@ -63,8 +64,8 @@ export async function commitCommand(specId?: string): Promise<void> {
     await store.save(spec);
     
     console.log(success(`Committed changes for ${spec.id}`));
-  } catch (err: any) {
-    console.error(error(`Commit failed: ${err.message}`));
+  } catch (err) {
+    console.error(error(`Commit failed: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

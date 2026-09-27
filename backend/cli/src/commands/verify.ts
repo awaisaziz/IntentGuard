@@ -1,6 +1,7 @@
 import { SpecStore, getRepoRoot, verify } from '@intentguard/core';
 import { withSpinner } from '../ui/spinner.js';
 import { formatVerification, error, header } from '../ui/formatters.js';
+import { formatCommandError } from './mcp-setup.js';
 
 /**
  * Verifies the current changes against the specified spec.
@@ -26,8 +27,8 @@ export async function verifyCommand(specId?: string): Promise<void> {
     if (!result.passed) {
       process.exit(1);
     }
-  } catch (err: any) {
-    console.error(error(`Verification failed: ${err.message}`));
+  } catch (err) {
+    console.error(error(`Verification failed: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

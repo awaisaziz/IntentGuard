@@ -13,6 +13,7 @@ import {
 } from '@intentguard/core';
 import { withSpinner } from '../ui/spinner.js';
 import { formatReadiness, header, warning, error as formatError } from '../ui/formatters.js';
+import { formatCommandError } from './mcp-setup.js';
 
 /**
  * Drafts a new IntentSpec from a request.
@@ -96,8 +97,8 @@ export async function newCommand(request: string): Promise<void> {
     const readiness = computeReadiness(spec);
     console.log(formatReadiness(readiness));
     
-  } catch (err: any) {
-    console.error(formatError(`Failed to create new spec: ${err.message}`));
+  } catch (err) {
+    console.error(formatError(`Failed to create new spec: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

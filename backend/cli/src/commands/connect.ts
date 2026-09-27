@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { connectRepo, type AgentId } from '@intentguard/core';
 import { header, success, error, warning } from '../ui/formatters.js';
-import { resolveRepo, selectAgentsOrExit } from './mcp-setup.js';
+import { resolveRepo, selectAgentsOrExit, formatCommandError } from './mcp-setup.js';
 
 interface ConnectOptions {
   agent?: string;
@@ -45,8 +45,8 @@ export async function connectCommand(repo: string | undefined, options: ConnectO
     console.log(chalk.bold('\nNext steps'));
     for (const agent of agents) console.log(`  • ${NEXT_STEPS[agent.id]}`);
     console.log(`  • Chat agent (IBM watsonx): pnpm chat --repo "${result.root}"`);
-  } catch (err: any) {
-    console.error(error(`Connect failed: ${err.message}`));
+  } catch (err) {
+    console.error(error(`Connect failed: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

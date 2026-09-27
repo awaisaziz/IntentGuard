@@ -25,7 +25,8 @@ export async function withSpinner<T>(text: string, fn: () => Promise<T>): Promis
     spinner.succeed();
     return result;
   } catch (err) {
-    spinner.fail();
+    const msg = err instanceof Error ? err.message : String(err);
+    spinner.fail(msg);
     throw err;
   }
 }

@@ -9,6 +9,17 @@ interface AgentOptions {
 }
 
 /**
+ * Returns a clean, single-line error message from any thrown value.
+ * Handles non-Error throws (plain strings, numbers, etc.) so callers
+ * never produce "Failed to ...: undefined".
+ */
+export function formatCommandError(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return String(err);
+}
+
+/**
  * Resolves which agents a command targets from --all / --agent.
  * @returns The selected agents, or null if the agent name is unknown
  */
@@ -18,13 +29,15 @@ export function selectAgents(options: AgentOptions): AgentIntegration[] | null {
   return agent ? [agent] : null;
 }
 
-/** Selected agents, or exits with the list of known agent ids. */
+/**
+ * Returns the selected agents, or throws an Error describing the problem
+ * so the caller can decide how to present it. Does NOT call process.exit.
+ */
 export function selectAgentsOrExit(options: AgentOptions): AgentIntegration[] {
   const agents = selectAgents(options);
   if (!agents) {
     const known = AGENT_INTEGRATIONS.map(a => a.id).join(', ');
-    console.log(warning(`Unknown agent "${options.agent}". Known agents: ${known}`));
-    process.exit(1);
+    throw new Error(`Unknown agent "${options.agent}". Known agents: ${known}`);
   }
   return agents;
 }
@@ -52,8 +65,8 @@ export async function mcpSetupCommand(options: AgentOptions): Promise<void> {
       const agent = agents.find(a => a.mcpConfigPath === file);
       console.log(success(`Configured ${agent?.name ?? 'agent'} MCP (${file}).`));
     }
-  } catch (err: any) {
-    console.error(error(`MCP setup failed: ${err.message}`));
+  } catch (err) {
+    console.error(error(`MCP setup failed: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

@@ -1,5 +1,6 @@
 import { SpecStore, getRepoRoot, computeReadiness } from '@intentguard/core';
 import { formatReadiness, error } from '../ui/formatters.js';
+import { formatCommandError } from './mcp-setup.js';
 
 /**
  * Checks the readiness of an IntentSpec.
@@ -17,8 +18,8 @@ export async function checkCommand(specId?: string): Promise<void> {
     
     const score = computeReadiness(spec);
     console.log(formatReadiness(score));
-  } catch (err: any) {
-    console.error(error(`Check failed: ${err.message}`));
+  } catch (err) {
+    console.error(error(`Check failed: ${formatCommandError(err)}`));
     process.exit(1);
   }
 }

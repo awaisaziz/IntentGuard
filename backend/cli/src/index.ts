@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import chalk from 'chalk';
 import { initCommand } from './commands/init.js';
 import { newCommand } from './commands/new.js';
 import { checkCommand } from './commands/check.js';
@@ -89,3 +90,10 @@ agents
   .action((options: { agent?: string }) => connectCommand(undefined, options));
 
 program.parse(process.argv);
+
+// Catch any unhandled promise rejection that escapes a command's try/catch.
+process.on('unhandledRejection', (reason: unknown) => {
+  const msg = reason instanceof Error ? reason.message : String(reason);
+  console.error(chalk.red(`✗ Unexpected error: ${msg}`));
+  process.exit(1);
+});

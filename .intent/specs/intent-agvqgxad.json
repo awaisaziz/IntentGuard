@@ -1,0 +1,129 @@
+{
+  "id": "intent-agvqgxad",
+  "status": "approved",
+  "objective": "Improve the CLI's error handling so that every command surfaces actionable, consistent error messages — distinguishing between expected user errors (no active spec, bad spec ID, unknown agent) and unexpected runtime failures — uses the correct output stream (stderr for errors), and exits with non-zero codes only when appropriate.",
+  "outcomes": [
+    "Every command prints user-facing errors to stderr (console.error) and exits with code 1 on failure — this is already the pattern, but two callsites use console.log for errors instead.",
+    "withSpinner shows the error message on spinner.fail() instead of swallowing it silently (currently spinner.fail() shows no text and the raw throw re-surfaces as an unformatted stack if uncaught).",
+    "Known user errors (no active spec, spec not found, unknown agent, repo not found, WatsonxConfigError) produce a short, human-readable message with no stack trace.",
+    "Unexpected errors (filesystem permission denied, JSON parse failure, network error) include the error class/type so the developer knows it is not a usage mistake.",
+    "process.exit(1) is only called at the top-level command boundary, not buried inside shared helpers like selectAgentsOrExit (currently selectAgentsOrExit calls process.exit, making it untestable).",
+    "The global unhandled rejection/exception handler in index.ts catches anything that escapes a command and prints it cleanly instead of crashing with a raw Node.js stack trace."
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "Improve error handling in the CLI",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-mujnarad-0",
+      "type": "observation",
+      "excerpt": "spinner.fail() is called with no message; the raw error is re-thrown and caught by the command's catch block, so the spinner just shows a bare red dot with no text.",
+      "source": "backend/cli/src/ui/spinner.ts:27-29"
+    },
+    {
+      "id": "ev-mujnarad-1",
+      "type": "observation",
+      "excerpt": "selectAgentsOrExit calls process.exit(1) inside a shared helper, making it impossible to unit-test and mixing control-flow concerns with error presentation.",
+      "source": "backend/cli/src/commands/mcp-setup.ts:22-29"
+    },
+    {
+      "id": "ev-mujnarad-2",
+      "type": "observation",
+      "excerpt": "No global uncaughtException or unhandledRejection handler — a command that throws outside its try/catch crashes with a raw Node.js stack trace.",
+      "source": "backend/cli/src/index.ts"
+    },
+    {
+      "id": "ev-mujnarad-3",
+      "type": "observation",
+      "excerpt": "All command catch blocks use err.message directly. If something throws a non-Error (e.g. a plain string), err.message is undefined and the output is 'Failed to ...: undefined'.",
+      "source": "backend/cli/src/commands/*.ts"
+    },
+    {
+      "id": "ev-mujnarad-4",
+      "type": "observation",
+      "excerpt": "Uses console.error(error(...)) consistently — good pattern already established.",
+      "source": "backend/cli/src/commands/connect.ts:48"
+    },
+    {
+      "id": "ev-mujnarad-5",
+      "type": "observation",
+      "excerpt": "Uses console.error(error(...)) and process.exit(1) — the correct pattern.",
+      "source": "backend/cli/src/commands/check.ts:20-23"
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "backend/cli/src/index.ts",
+      "backend/cli/src/ui/spinner.ts",
+      "backend/cli/src/commands/check.ts",
+      "backend/cli/src/commands/commit.ts",
+      "backend/cli/src/commands/connect.ts",
+      "backend/cli/src/commands/init.ts",
+      "backend/cli/src/commands/mcp-setup.ts",
+      "backend/cli/src/commands/new.ts",
+      "backend/cli/src/commands/report.ts",
+      "backend/cli/src/commands/rules-generate.ts",
+      "backend/cli/src/commands/verify.ts"
+    ],
+    "outOfScope": [
+      "backend/core/**",
+      "backend/server/**",
+      "mcp/**",
+      "frontend/**",
+      "backend/cli/src/commands/chat.ts"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "Error thrown inside withSpinner callback",
+      "expectedBehavior": "Spinner fails with the error message shown, then the command's catch block prints the formatted error and exits 1."
+    },
+    {
+      "scenario": "selectAgents returns null (unknown agent name)",
+      "expectedBehavior": "Returns null to caller; caller (command) logs the warning and calls process.exit(1) — process.exit is not inside the shared helper."
+    },
+    {
+      "scenario": "Unhandled rejection from a command that forgets try/catch",
+      "expectedBehavior": "Global handler in index.ts catches it, prints formatted error, exits 1."
+    },
+    {
+      "scenario": "Error object has no .message (e.g. a string is thrown)",
+      "expectedBehavior": "formatCommandError falls back to String(err) so no [object Object] output."
+    },
+    {
+      "scenario": "WatsonxConfigError during model init in non-chat commands",
+      "expectedBehavior": "Not applicable — only chat.ts creates the model. Out of scope."
+    },
+    {
+      "scenario": "Spinner is running when process receives SIGINT",
+      "expectedBehavior": "Not changed — SIGINT handling in chat.ts is out of scope; other commands do not intercept SIGINT."
+    }
+  ],
+  "constraints": [
+    "Do not change any public API or exported types.",
+    "Do not add new dependencies.",
+    "Keep existing chalk/ora/commander usage.",
+    "chat.ts already has its own well-structured error handling — leave it untouched."
+  ],
+  "healthMetrics": [
+    "All existing CLI tests continue to pass.",
+    "No new runtime dependencies introduced.",
+    "TypeScript compiles without new errors (pnpm build in backend/cli)."
+  ],
+  "verification": [
+    "pnpm --filter @intentguard/cli build exits 0.",
+    "pnpm test exits 0 (no regressions in core or server suites).",
+    "Manual: intent check with no .intent/ dir prints a clean error line to stderr, no stack trace.",
+    "Manual: intent check --spec nonexistent prints 'Spec nonexistent not found.' to stderr.",
+    "Manual: intent connect --agent badname prints 'Unknown agent...' warning and exits 1."
+  ],
+  "createdAt": 1790502993,
+  "updatedAt": 1790503088,
+  "rawRequest": "Improve error handling in the CLI",
+  "readinessScore": 100
+}
