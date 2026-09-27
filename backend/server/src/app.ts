@@ -51,11 +51,14 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
     if (!LOCAL_HOSTS.has(new URL(c.req.url).hostname)) return c.json({ error: 'Forbidden host' }, 403);
     await next();
   });
-  app.use('*', cors({ origin: allowedOrigins, allowMethods: ['GET', 'POST', 'PATCH', 'OPTIONS'], allowHeaders: ['Content-Type'] }));
+  app.use('*', cors({ origin: allowedOrigins, allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], allowHeaders: ['Content-Type'] }));
   app.use('*', async (c, next) => {
     const origin = c.req.header('origin');
     if (origin && !allowedOrigins.includes(origin)) return c.json({ error: 'Forbidden origin' }, 403);
     if (['POST', 'PATCH'].includes(c.req.method) && !(c.req.header('content-type') ?? '').includes('application/json')) {
+      return c.json({ error: 'Content-Type must be application/json' }, 415);
+    }
+    if (c.req.method === 'DELETE' && c.req.header('content-type') && !(c.req.header('content-type') ?? '').includes('application/json')) {
       return c.json({ error: 'Content-Type must be application/json' }, 415);
     }
     await next();
@@ -121,6 +124,18 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
     const spec = await loadSpec(c.req.param('id'));
     await store.setActive(spec.id);
     return c.json({ activeSpecId: spec.id });
+  });
+
+  app.delete('/specs/:id', async c => {
+    const id = c.req.param('id');
+    const spec = await loadSpec(id);
+    // Refuse to delete the active spec
+    const active = await store.loadActive();
+    if (active?.id === spec.id) {
+      throw new HTTPException(409, { message: `Cannot delete ${id}: it is the active spec. Set another spec active first.` });
+    }
+    await store.delete(id);
+    return new Response(null, { status: 204 });
   });
 
   app.get('/specs/:id/readiness', async c => {

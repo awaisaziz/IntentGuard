@@ -1,0 +1,124 @@
+{
+  "id": "intent-v1f23ga1",
+  "status": "draft",
+  "objective": "Users have no way to delete specs, causing draft clutter and no cleanup path. Adds a delete method to SpecStore, a DELETE endpoint on the server, a delete button per spec card, and a bulk-delete-drafts action on the specs page.",
+  "outcomes": [
+    "DELETE /specs/:id removes the spec JSON, MD, and report files; returns 204",
+    "Deleting the active spec returns 409 with a clear error message",
+    "Each spec card shows a trash icon button; clicking it shows a confirm dialog then calls DELETE",
+    "The specs page has a 'Clear all drafts' button that bulk-deletes all draft specs with a confirm dialog",
+    "After deletion the spec disappears from the list without a full page reload"
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "Add delete spec capability: SpecStore.delete() in core, DELETE /specs/:id in server, deleteSpec() in frontend API client, delete button on spec cards, bulk-delete-all-drafts button on specs page",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-0",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-1",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/settings/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-2",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/[id]/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-3",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/app/specs/page.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-4",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/components/navbar.tsx",
+      "anchors": [
+        "objective"
+      ]
+    },
+    {
+      "id": "ev-file-5",
+      "type": "observation",
+      "excerpt": "Gathered file evidence: frontend/src/components/spec-card.tsx",
+      "anchors": [
+        "objective"
+      ]
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "backend/core/src/store/spec-store.ts",
+      "backend/server/src/app.ts",
+      "frontend/src/lib/api.ts",
+      "frontend/src/app/specs/page.tsx",
+      "frontend/src/components/spec-card.tsx"
+    ],
+    "outOfScope": [
+      "frontend/src/app/page.tsx",
+      "frontend/src/app/settings/page.tsx",
+      "frontend/src/app/specs/[id]/page.tsx",
+      "backend/core/src/agent/**",
+      "mcp/src/**"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "User tries to delete the active spec",
+      "expectedBehavior": "Server returns 409; UI shows error toast; spec is not deleted"
+    },
+    {
+      "scenario": "User clicks Delete then cancels the confirm dialog",
+      "expectedBehavior": "Nothing is deleted; card stays in place"
+    },
+    {
+      "scenario": "No draft specs exist when bulk-delete is clicked",
+      "expectedBehavior": "Button is disabled or shows 'No drafts to delete'"
+    },
+    {
+      "scenario": "DELETE request fails mid-bulk-delete",
+      "expectedBehavior": "Successfully deleted specs are removed from the list; failed ones stay with an error banner"
+    }
+  ],
+  "constraints": [
+    "Cannot delete a spec that is currently the active spec — must deactivate first or refuse",
+    "Deleting a spec also removes its .md file and proof report",
+    "No new npm dependencies"
+  ],
+  "healthMetrics": [
+    "All existing server tests still pass",
+    "Frontend builds with no TypeScript errors"
+  ],
+  "verification": [
+    "Delete a non-active draft spec — card disappears from the list",
+    "Try to delete the active spec — error message appears, spec stays",
+    "Click Clear all drafts — all draft cards are removed",
+    "Cancel the confirm dialog — nothing changes",
+    "pnpm test passes",
+    "pnpm build exits 0"
+  ],
+  "createdAt": 1790512421,
+  "updatedAt": 1790512442,
+  "rawRequest": "Add delete spec capability: SpecStore.delete() in core, DELETE /specs/:id in server, deleteSpec() in frontend API client, delete button on spec cards, bulk-delete-all-drafts button on specs page"
+}

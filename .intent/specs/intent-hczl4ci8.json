@@ -1,0 +1,82 @@
+{
+  "id": "intent-hczl4ci8",
+  "status": "draft",
+  "objective": "The frontend spec creation flow is missing CLI parity (no sequential wizard, no readiness loop), the dashboard home page shows stale/static data, and the UI looks like a generic LLM tool instead of a demo-worthy product that can be recorded as a compelling video.",
+  "outcomes": [
+    "QuestionsStep becomes a one-question-at-a-time stepper: shows current question index (e.g. 2/5), Back/Next buttons, answer persists as user navigates",
+    "After submitting the last answer, the modal calls GET /specs/:id/readiness — if ready:true it navigates to the spec; if not it re-fetches GET /specs/:id/questions and shows the remaining questions for another round",
+    "The loop continues until readiness returns ready:true or the user explicitly clicks Skip",
+    "Dashboard home page fetches live data: total spec count, approved count, verified count, active spec with live readiness score — no hardcoded numbers",
+    "All new UI elements use the existing dark-first design system (brand-teal, dark slate backgrounds) with CSS transitions on state changes (opacity, translate) — no new animation libraries",
+    "The spec wizard modal shows a readiness score progress bar that animates upward after each answer round"
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "type": "request",
+      "excerpt": "Fill all CLI-parity gaps in the frontend: (1) sequential one-question-at-a-time wizard with readiness re-check loop until ready:true; (2) make the dashboard home page fully dynamic with live stats; (3) make the entire UI visually striking like an action movie trailer — dark, high-contrast, animated, cinematic — not a boring LLM dashboard",
+      "anchors": [
+        "objective"
+      ]
+    }
+  ],
+  "scope": {
+    "inScope": [
+      "frontend/src/app/specs/page.tsx",
+      "frontend/src/app/page.tsx",
+      "frontend/src/app/settings/page.tsx",
+      "frontend/src/lib/api.ts",
+      "frontend/src/components/readiness-gauge.tsx",
+      "frontend/src/components/spec-card.tsx",
+      "frontend/src/components/intent-flow.tsx",
+      "frontend/src/components/navbar.tsx",
+      "frontend/src/app/specs/**"
+    ],
+    "outOfScope": [
+      "backend/core/src/**",
+      "mcp/src/**",
+      "frontend/src/app/specs/[id]/readiness/page.tsx",
+      "frontend/src/app/specs/[id]/report/page.tsx"
+    ]
+  },
+  "edgeCases": [
+    {
+      "scenario": "All questions answered but readiness still below threshold",
+      "expectedBehavior": "Show remaining blockers clearly and re-render the next round of questions"
+    },
+    {
+      "scenario": "GET /specs/:id/readiness fails mid-loop",
+      "expectedBehavior": "Show inline error, keep modal open with a Retry button"
+    },
+    {
+      "scenario": "No specs exist on the dashboard",
+      "expectedBehavior": "Show zero-state with a CTA to create the first spec"
+    },
+    {
+      "scenario": "Backend is unreachable when dashboard loads",
+      "expectedBehavior": "Show 0 for all counters, no crash"
+    }
+  ],
+  "constraints": [
+    "No new npm packages — use only Tailwind CSS and lucide-react already in the project",
+    "CSS animations must use Tailwind transition utilities only (no keyframe imports)",
+    "Dashboard page stays a server component (async function) — only add a thin client wrapper for the stats counter if needed",
+    "Do not change backend/core, mcp, or the server app.ts"
+  ],
+  "healthMetrics": [
+    "All existing server tests still pass (pnpm test)",
+    "Frontend builds with no TypeScript errors (pnpm build)",
+    "Existing Cancel/Skip behaviour still works"
+  ],
+  "verification": [
+    "Create a new spec — modal shows questions one at a time with progress counter",
+    "Answer all questions — modal shows readiness check, then navigates to spec detail",
+    "Leave all answers blank — Submit button disabled",
+    "Visit dashboard — spec counts and readiness score reflect real backend data",
+    "Build passes: pnpm build exits 0"
+  ],
+  "createdAt": 1790510311,
+  "updatedAt": 1790511969,
+  "rawRequest": "Fill all CLI-parity gaps in the frontend: (1) sequential one-question-at-a-time wizard with readiness re-check loop until ready:true; (2) make the dashboard home page fully dynamic with live stats; (3) make the entire UI visually striking like an action movie trailer — dark, high-contrast, animated, cinematic — not a boring LLM dashboard",
+  "readinessScore": 100
+}

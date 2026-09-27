@@ -160,6 +160,14 @@ export async function updateSpecAnswers(id: string, answers: Record<string, unkn
   return normaliseEvidence((await res.json()) as Spec);
 }
 
+export async function deleteSpec(id: string): Promise<void> {
+  const res = await apiFetch(`/specs/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error ?? `Failed to delete spec (${res.status})`);
+  }
+}
+
 export async function getActiveSpec(): Promise<Spec | null> {
   try {
     const res = await apiFetch('/specs/active');

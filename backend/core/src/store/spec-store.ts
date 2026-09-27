@@ -137,4 +137,19 @@ export class SpecStore {
       return null;
     }
   }
+
+  /**
+   * Deletes a spec's JSON, Markdown, and proof report files.
+   * Does not check whether the spec is active — callers must do that.
+   */
+  async delete(id: string): Promise<void> {
+    await this.ensureConfig();
+    const specsDir  = path.join(this.rootDir, this.config.specDir);
+    const reportsDir = path.join(this.rootDir, this.config.reportDir);
+    await Promise.allSettled([
+      fs.unlink(path.join(specsDir,   `${id}.json`)),
+      fs.unlink(path.join(specsDir,   `${id}.md`)),
+      fs.unlink(path.join(reportsDir, `${id}-report.json`)),
+    ]);
+  }
 }
