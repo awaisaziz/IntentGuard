@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   getSpecById, activateSpec, getSpecQuestions, getSpecReadiness, updateSpecAnswers,
-  type Spec, type SpecQuestion,
+  runVerify, commitSpec, checkFileScope,
+  type Spec, type SpecQuestion, type CommitResult,
 } from '@/lib/api';
 import ScopeTree from '@/components/scope-tree';
 import EvidencePanel from '@/components/evidence-panel';
@@ -12,7 +13,7 @@ import { use } from 'react';
 import {
   ArrowLeft, Target, ShieldAlert, CheckCircle2, ShieldCheck, Activity,
   AlertTriangle, FileCheck2, Zap, Loader2, Star, HelpCircle,
-  ChevronLeft, ChevronRight, AlertCircle,
+  ChevronLeft, ChevronRight, AlertCircle, PlayCircle, GitCommit, Search,
 } from 'lucide-react';
 
 // ─── Question wizard (same logic as specs/page.tsx, embedded inline) ─────────
@@ -244,10 +245,75 @@ export default function SpecDetailPage({ params }: { params: Promise<{ id: strin
   const [activated, setActivated] = useState(false);
   const [pendingQuestions, setPendingQuestions] = useState<SpecQuestion[]>([]);
 
+  // ── Verify ──────────────────────────────────────────────────────────────────
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const handleVerify = async () => {
+    if (!spec) return;
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      await runVerify(spec.id);
+      setVerifyResult({ ok: true, message: 'Verification passed. Proof report saved.' });
+    } catch (err) {
+      setVerifyResult({ ok: false, message: (err as Error).message });
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  // ── Commit ───────────────────────────────────────────────────────────────────
+  const [commitMsg, setCommitMsg] = useState('');
+  const [committing, setCommitting] = useState(false);
+  const [commitResult, setCommitResult] = useState<CommitResult | null>(null);
+  const [commitError, setCommitError] = useState<string | null>(null);
+
+  const handleCommit = async () => {
+    if (!spec) return;
+    setCommitting(true);
+    setCommitError(null);
+    setCommitResult(null);
+    try {
+      const result = await commitSpec(spec.id, commitMsg.trim() || undefined);
+      setCommitResult(result);
+      setSpec(result.spec);
+      setCommitMsg('');
+    } catch (err) {
+      setCommitError((err as Error).message);
+    } finally {
+      setCommitting(false);
+    }
+  };
+
+  // ── Scope check ──────────────────────────────────────────────────────────────
+  const [scopeInput, setScopeInput] = useState('');
+  const [scopeChecking, setScopeChecking] = useState(false);
+  const [scopeResult, setScopeResult] = useState<{ allowed: boolean; reason: string; matchedRule?: string } | null>(null);
+  const [scopeError, setScopeError] = useState<string | null>(null);
+
+  const handleScopeCheck = async () => {
+    if (!spec || !scopeInput.trim()) return;
+    setScopeChecking(true);
+    setScopeResult(null);
+    setScopeError(null);
+    try {
+      const result = await checkFileScope(spec.id, scopeInput.trim());
+      setScopeResult(result);
+    } catch (err) {
+      setScopeError((err as Error).message);
+    } finally {
+      setScopeChecking(false);
+    }
+  };
+
   const refresh = useCallback(() => {
     getSpecById(id).then(s => {
       if (!s) setNotFound(true);
-      else setSpec(s);
+      else {
+        setSpec(s);
+        setCommitMsg(prev => prev || `feat: ${s.objective.slice(0, 50)} [intent:${s.id}]`);
+      }
     });
   }, [id]);
 
@@ -350,6 +416,122 @@ export default function SpecDetailPage({ params }: { params: Promise<{ id: strin
           <div className="p-2 bg-blue-950/40 text-blue-400 rounded-lg border border-blue-700/30"><Activity className="w-5 h-5" /></div>
           <div className="font-semibold text-slate-200">Proof Report</div>
         </Link>
+      </div>
+
+      {/* ── Verify ── */}
+      <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold flex items-center gap-2 text-white">
+            <PlayCircle className="w-4 h-4 text-brand-teal" /> Run Verification
+          </h2>
+          <button
+            onClick={handleVerify}
+            disabled={verifying}
+            className="flex items-center gap-2 px-4 py-1.5 text-sm font-bold rounded-lg bg-brand-teal hover:bg-brand-dark text-white disabled:opacity-50 transition-all"
+          >
+            {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
+            {verifying ? 'Verifying…' : 'Verify now'}
+          </button>
+        </div>
+        <p className="text-xs text-slate-500">Runs <code className="font-mono bg-slate-800 px-1 rounded">intent verify</code> against the current working tree — checks scope, outcomes, health metrics, and configured tests. Saves a proof report.</p>
+        {verifyResult && (
+          <div className={`flex items-start gap-2 px-3 py-2 rounded-lg border text-xs font-medium ${
+            verifyResult.ok
+              ? 'border-emerald-700/50 bg-emerald-950/30 text-emerald-400'
+              : 'border-red-700/50 bg-red-950/30 text-red-400'
+          }`}>
+            {verifyResult.ok ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />}
+            {verifyResult.message}
+            {verifyResult.ok && (
+              <Link href={`/specs/${spec.id}/report`} className="ml-auto underline underline-offset-2 hover:text-emerald-300">
+                View report →
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Commit ── */}
+      <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-3">
+        <h2 className="font-bold flex items-center gap-2 text-white">
+          <GitCommit className="w-4 h-4 text-purple-400" /> Commit Changes
+        </h2>
+        <p className="text-xs text-slate-500">Verifies the working tree, then runs <code className="font-mono bg-slate-800 px-1 rounded">git commit</code> and marks the spec as <code className="font-mono bg-slate-800 px-1 rounded">shipped</code>.</p>
+        {commitResult ? (
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg border border-emerald-700/50 bg-emerald-950/30 text-emerald-400 text-xs font-medium">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+            <span>Committed <code className="font-mono">{commitResult.hash.slice(0, 8)}</code> · spec marked <strong>shipped</strong></span>
+          </div>
+        ) : (
+          <>
+            <input
+              type="text"
+              value={commitMsg}
+              onChange={e => setCommitMsg(e.target.value)}
+              placeholder="Commit message…"
+              className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            />
+            {commitError && (
+              <div className="flex items-start gap-2 px-3 py-2 rounded-lg border border-red-700/50 bg-red-950/30 text-red-400 text-xs">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {commitError}
+              </div>
+            )}
+            <button
+              onClick={handleCommit}
+              disabled={committing || !commitMsg.trim()}
+              className="flex items-center gap-2 px-4 py-1.5 text-sm font-bold rounded-lg bg-purple-700 hover:bg-purple-600 text-white disabled:opacity-50 transition-all"
+            >
+              {committing ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitCommit className="w-4 h-4" />}
+              {committing ? 'Committing…' : 'Commit & ship'}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* ── Scope check ── */}
+      <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-3">
+        <h2 className="font-bold flex items-center gap-2 text-white">
+          <Search className="w-4 h-4 text-amber-400" /> Scope Check
+        </h2>
+        <p className="text-xs text-slate-500">Check whether a file path falls inside or outside this spec's scope fence.</p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={scopeInput}
+            onChange={e => setScopeInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleScopeCheck(); }}
+            placeholder="e.g. src/auth/login.ts"
+            className="flex-1 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          />
+          <button
+            onClick={handleScopeCheck}
+            disabled={scopeChecking || !scopeInput.trim()}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-lg bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-50 transition-all"
+          >
+            {scopeChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+            Check
+          </button>
+        </div>
+        {scopeError && (
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg border border-red-700/50 bg-red-950/30 text-red-400 text-xs">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {scopeError}
+          </div>
+        )}
+        {scopeResult && (
+          <div className={`flex items-start gap-2 px-3 py-2 rounded-lg border text-xs font-medium ${
+            scopeResult.allowed
+              ? 'border-emerald-700/50 bg-emerald-950/30 text-emerald-400'
+              : 'border-red-700/50 bg-red-950/30 text-red-400'
+          }`}>
+            {scopeResult.allowed
+              ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              : <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />}
+            <span>
+              <strong>{scopeResult.allowed ? 'Allowed' : 'Blocked'}</strong> — {scopeResult.reason}
+              {scopeResult.matchedRule && <span className="ml-1 font-mono text-slate-400">({scopeResult.matchedRule})</span>}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Content sections */}

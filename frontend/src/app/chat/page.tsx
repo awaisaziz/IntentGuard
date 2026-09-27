@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageSquare, Send, Square, RotateCcw, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Square, RotateCcw, Loader2, ChevronDown } from 'lucide-react';
 import Transcript, { type TranscriptItem } from '@/components/chat/transcript';
 import SpecPanel from '@/components/chat/spec-panel';
 import MetricsPanel from '@/components/chat/metrics-panel';
+import { listChatModels } from '@/lib/api';
 import {
   approveSpec,
   createSession,
@@ -34,18 +35,29 @@ export default function ChatPage() {
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Model selector
+  const [models, setModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+
   const start = useCallback(async (withHarness: boolean) => {
     setSession(null);
     setSetupError(null);
     setItems([]);
     setMetrics(null);
     try {
-      const s = await createSession(withHarness);
+      const s = await createSession(withHarness, selectedModel || undefined);
       setSession(s);
       setSpec(s.spec);
     } catch (err) {
       setSetupError((err as Error).message);
     }
+  }, [selectedModel]);
+
+  // Fetch available models once on mount (best-effort — chat still works without them)
+  useEffect(() => {
+    listChatModels().then(list => {
+      setModels(list);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -145,7 +157,21 @@ export default function ChatPage() {
             <MessageSquare className="w-8 h-8 text-brand-teal" /> Agent Chat
           </h1>
           <p className="text-slate-500 mt-1">
-            An IBM watsonx coding agent working in the connected repository{session ? ` · ${session.model}` : ''}.
+            An IBM watsonx coding agent
+            {session ? (
+              <>
+                {' working in '}
+                <span
+                  className="font-mono text-slate-700 dark:text-slate-300"
+                  title={session.repoPath}
+                >
+                  {session.repoPath.split(/[\\/]/).pop() ?? session.repoPath}
+                </span>
+                {` · ${session.model}`}
+              </>
+            ) : (
+              ' working in the connected repository'
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -163,6 +189,26 @@ export default function ChatPage() {
               Baseline (OFF)
             </button>
           </div>
+
+          {/* Model selector — only shown when the server returned a model list */}
+          {models.length > 0 && (
+            <div className="relative">
+              <select
+                value={selectedModel}
+                onChange={e => setSelectedModel(e.target.value)}
+                disabled={running}
+                title="Pick a watsonx model for the next session"
+                className="appearance-none pl-3 pr-8 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-teal disabled:opacity-40 cursor-pointer"
+              >
+                <option value="">Default model</option>
+                {models.map(m => (
+                  <option key={m} value={m}>{m.split('/').pop() ?? m}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            </div>
+          )}
+
           <button
             onClick={() => start(harness)}
             disabled={running}

@@ -236,3 +236,103 @@ export async function getAgentStatuses(): Promise<AgentStatus[]> {
     return [];
   }
 }
+
+// ─── Verify ──────────────────────────────────────────────────────────────────
+
+export async function runVerify(id: string): Promise<unknown> {
+  const res = await apiFetch(`/specs/${encodeURIComponent(id)}/verify`, { method: 'POST' });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error ?? `Verification failed (${res.status})`);
+  }
+  return res.json();
+}
+
+// ─── Commit ───────────────────────────────────────────────────────────────────
+
+export interface CommitResult {
+  hash: string;
+  spec: Spec;
+  defaultMessage: string;
+}
+
+export async function commitSpec(id: string, message?: string): Promise<CommitResult> {
+  const res = await apiFetch(`/specs/${encodeURIComponent(id)}/commit`, {
+    method: 'POST',
+    body: JSON.stringify({ message }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error ?? `Commit failed (${res.status})`);
+  }
+  return res.json();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+export interface InitResult {
+  rootDir: string;
+  projectName: string | null;
+}
+
+export async function initRepo(): Promise<InitResult> {
+  const res = await apiFetch('/init', { method: 'POST' });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error ?? `Init failed (${res.status})`);
+  }
+  return res.json();
+}
+
+// ─── Connect ──────────────────────────────────────────────────────────────────
+
+export interface ConnectResult {
+  root: string;
+  initialized: boolean;
+  commands: Record<string, string>;
+  mcpConfigs: string[];
+  rules: string[];
+  excluded: string[];
+  trackedWarnings: string[];
+}
+
+export async function connectRepo(agent?: string, mcpOnly?: boolean, rulesOnly?: boolean): Promise<ConnectResult> {
+  const res = await apiFetch('/connect', {
+    method: 'POST',
+    body: JSON.stringify({ agent, mcpOnly, rulesOnly }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error ?? `Connect failed (${res.status})`);
+  }
+  return res.json();
+}
+
+// ─── Scope check ─────────────────────────────────────────────────────────────
+
+export interface ScopeCheckResult {
+  allowed: boolean;
+  reason: string;
+  matchedRule?: string;
+}
+
+export async function checkFileScope(specId: string, filePath: string): Promise<ScopeCheckResult> {
+  const res = await apiFetch(`/specs/${encodeURIComponent(specId)}/scope-check`, {
+    method: 'POST',
+    body: JSON.stringify({ filePath }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error ?? `Scope check failed (${res.status})`);
+  }
+  return res.json();
+}
+
+// ─── Chat models ─────────────────────────────────────────────────────────────
+
+export async function listChatModels(): Promise<string[]> {
+  const res = await apiFetch('/chat/models');
+  if (!res.ok) return [];
+  const data = await res.json() as { models: string[] };
+  return data.models ?? [];
+}

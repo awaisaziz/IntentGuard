@@ -5,6 +5,9 @@ import { streamSSE } from 'hono/streaming';
 import {
   SpecStore,
   loadConfig,
+  saveConfig,
+  DEFAULT_CONFIG,
+  detectProjectInfo,
   computeReadiness,
   generateQuestions,
   checkScope,
@@ -13,10 +16,14 @@ import {
   draftSpec,
   updateSpec,
   getAgentStatuses,
+  connectRepo,
+  commitWithSpec,
   IntentAgent,
   WatsonxChatModel,
   type ChatModel,
   type IntentSpec,
+  type AgentId,
+  AGENT_INTEGRATIONS,
 } from '@intentguard/core';
 
 // Spec IDs become file names under .intent/specs, so reject anything path-like
@@ -195,9 +202,11 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
   }
 
   app.post('/chat', async c => {
-    const { harness } = await readJson<{ harness: boolean }>(c.req);
+    const { harness, modelId } = await readJson<{ harness: boolean; modelId?: string }>(c.req);
     let model: ChatModel;
     try {
+      // Allow the frontend to pick a specific watsonx model for this session
+      if (typeof modelId === 'string' && modelId.trim()) process.env.WATSONX_MODEL_ID = modelId.trim();
       model = createChatModel();
     } catch (err) {
       throw new HTTPException(503, { message: err instanceof Error ? err.message : String(err) });
@@ -208,7 +217,7 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
       if (sessions.size <= MAX_CHAT_SESSIONS) break;
       if (!old.isBusy) sessions.delete(id);
     }
-    return c.json({ id: agent.id, harness: agent.harness, model: agent.modelId, spec: await agent.snapshot() }, 201);
+    return c.json({ id: agent.id, harness: agent.harness, model: agent.modelId, repoPath: rootDir, spec: await agent.snapshot() }, 201);
   });
 
   app.get('/chat/:id', async c => {
@@ -217,6 +226,7 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
       id: agent.id,
       harness: agent.harness,
       model: agent.modelId,
+      repoPath: rootDir,
       busy: agent.isBusy,
       metrics: agent.getMetrics(),
       spec: await agent.snapshot(),
@@ -246,6 +256,79 @@ export function createApp(rootDir: string, options: AppOptions = {}): Hono {
       return c.json({ spec: await agent.approve() });
     } catch (err) {
       throw new HTTPException(409, { message: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
+  // ---------- Commit: verify + git commit + mark spec shipped ----------
+
+  app.post('/specs/:id/commit', async c => {
+    const spec = await loadSpec(c.req.param('id'));
+    const { message } = await readJson<{ message?: string }>(c.req);
+    const defaultMsg = `feat: ${spec.objective.slice(0, 50)} [intent:${spec.id}]`;
+    const commitMessage = typeof message === 'string' && message.trim() ? message.trim() : defaultMsg;
+    const verification = await verify(rootDir, spec);
+    if (!verification.passed) {
+      throw new HTTPException(409, { message: 'Verification failed — fix the issues before committing.' });
+    }
+    try {
+      const hash = await commitWithSpec(rootDir, commitMessage, spec.id);
+      spec.status = 'shipped';
+      const { spec: saved } = await store.save(spec);
+      return c.json({ hash, spec: saved, defaultMessage: defaultMsg });
+    } catch (err) {
+      throw new HTTPException(500, { message: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
+  // ---------- Init: initialise .intent/ in the guarded repo ----------
+
+  app.post('/init', async c => {
+    const s = new SpecStore(rootDir);
+    await s.init();
+    const info = await detectProjectInfo(rootDir);
+    const existing = await loadConfig(rootDir);
+    if (!existing.projectName) {
+      await saveConfig(rootDir, { ...DEFAULT_CONFIG, projectName: info.projectName });
+    }
+    return c.json({ rootDir, projectName: info.projectName ?? null });
+  });
+
+  // ---------- Connect: wire agents' MCP configs and rule files ----------
+
+  app.post('/connect', async c => {
+    const { agent, mcpOnly, rulesOnly } = await readJson<{ agent?: string; mcpOnly?: boolean; rulesOnly?: boolean }>(c.req);
+    const agents = agent
+      ? AGENT_INTEGRATIONS.filter(a => a.id === (agent as AgentId))
+      : AGENT_INTEGRATIONS;
+    if (agent && agents.length === 0) {
+      throw new HTTPException(400, { message: `Unknown agent id: ${agent}` });
+    }
+    try {
+      const result = await connectRepo(rootDir, {
+        agents,
+        mcp: rulesOnly ? false : true,
+        rules: mcpOnly ? false : true,
+      });
+      return c.json(result);
+    } catch (err) {
+      throw new HTTPException(500, { message: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
+  // ---------- Chat models: list watsonx tool-calling models ----------
+
+  app.get('/chat/models', async c => {
+    let model: ChatModel;
+    try {
+      model = createChatModel();
+    } catch (err) {
+      throw new HTTPException(503, { message: err instanceof Error ? err.message : String(err) });
+    }
+    try {
+      const models = await (model as WatsonxChatModel).listToolModels();
+      return c.json({ models });
+    } catch (err) {
+      throw new HTTPException(502, { message: err instanceof Error ? err.message : String(err) });
     }
   });
 

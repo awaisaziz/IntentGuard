@@ -9,6 +9,8 @@ export interface ChatSession {
   id: string;
   harness: boolean;
   model: string;
+  /** Absolute path of the repository the server is guarding. */
+  repoPath: string;
   spec: SpecSnapshot | null;
 }
 
@@ -32,8 +34,13 @@ async function post(path: string, body: unknown, signal?: AbortSignal): Promise<
   return res;
 }
 
-export async function createSession(harness: boolean): Promise<ChatSession> {
-  return (await post('/chat', { harness })).json();
+/**
+ * Creates a new chat session.
+ * @param harness Whether to run with the IntentGuard intent layer.
+ * @param modelId Optional watsonx model id to override the server default.
+ */
+export async function createSession(harness: boolean, modelId?: string): Promise<ChatSession> {
+  return (await post('/chat', { harness, ...(modelId ? { modelId } : {}) })).json();
 }
 
 export async function approveSpec(sessionId: string): Promise<SpecSnapshot> {
